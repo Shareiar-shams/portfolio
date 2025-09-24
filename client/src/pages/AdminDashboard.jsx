@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import AdminLayout from '../components/admin/AdminLayout';
+import ProjectsManagement from './admin/ProjectsManagement';
 import api from '../utils/api';
 import { Activity, Briefcase, Code2, User } from 'lucide-react';
 
