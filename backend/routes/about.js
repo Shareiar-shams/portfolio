@@ -20,8 +20,8 @@ router.get("/", async (req, res) => {
 // POST /api/about → Create new (protected)
 router.post("/", auth, async (req, res) => {
   try {
-    // Validate required fields
     const { name, title, description } = req.body;
+
     if (!name || !title || !description) {
       return res.status(400).json({ 
         msg: "Please provide all required fields (name, title, description)" 
@@ -29,18 +29,22 @@ router.post("/", auth, async (req, res) => {
     }
 
     // Check if about info already exists
-    const existingAbout = await About.findOne();
-    if (existingAbout) {
-      return res.status(400).json({ 
-        msg: "About information already exists. Use PUT to update." 
-      });
+    let about = await About.findOne();
+
+    if (about) {
+      // if exists, update it instead of creating new
+      Object.assign(about, req.body);
+      await about.save();
+      return res.status(200).json({ msg: "About info updated", about });
     }
 
-    const about = new About(req.body);
+    // if not exists, create new
+    about = new About(req.body);
     await about.save();
-    res.status(201).json(about);
+    res.status(201).json({ msg: "About info created", about });
+
   } catch (err) {
-    console.error('Error creating about info:', err);
+    console.error('Error creating/updating about info:', err);
     if (err.name === 'ValidationError') {
       return res.status(400).json({ msg: err.message });
     }
