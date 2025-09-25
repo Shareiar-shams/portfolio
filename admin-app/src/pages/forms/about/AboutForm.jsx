@@ -20,6 +20,8 @@ export default function AboutForm({ about, isEditing = false }) {
     resumeLink: about?.resumeLink || ''
   });
 
+  const [previewImage, setPreviewImage] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -100,15 +102,43 @@ export default function AboutForm({ about, isEditing = false }) {
 
           <div>
             <label htmlFor="profileImage" className="block text-sm font-medium text-gray-200 mb-1">
-              Profile Image URL
+              Profile Image
             </label>
+
+            {(previewImage || formData.profileImage) && (
+              <div className="mb-4">
+                <img
+                  src={previewImage || formData.profileImage}  // 👈 নতুন image থাকলে ওটাই show হবে
+                  alt="Profile Preview"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-700"
+                />
+              </div>
+            )}
+
             <input
               id="profileImage"
-              type="url"
-              value={formData.profileImage}
-              onChange={(e) => setFormData({ ...formData, profileImage: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="https://example.com/profile-image.jpg"
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  // লোকাল preview সেট
+                  setPreviewImage(URL.createObjectURL(file));
+
+                  const formDataUpload = new FormData();
+                  formDataUpload.append('image', file);
+                  try {
+                    const response = await api.post('/api/upload', formDataUpload);
+                    setFormData(prev => ({
+                      ...prev,
+                      profileImage: response.data.url
+                    }));
+                  } catch (err) {
+                    setError('Failed to upload image');
+                  }
+                }
+              }}
+              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
             />
           </div>
 
@@ -184,15 +214,44 @@ export default function AboutForm({ about, isEditing = false }) {
 
           <div>
             <label htmlFor="resumeLink" className="block text-sm font-medium text-gray-200 mb-1">
-              Resume Link
+              Resume
             </label>
+            {formData.resumeLink && (
+              <div className="mb-4">
+                <a
+                  href={formData.resumeLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2"
+                >
+                  Current Resume
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            )}
             <input
               id="resumeLink"
-              type="url"
-              value={formData.resumeLink}
-              onChange={(e) => setFormData({ ...formData, resumeLink: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="https://example.com/your-resume.pdf"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const formData = new FormData();
+                  formData.append('resume', file);
+                  try {
+                    const response = await api.post('/api/upload', formData);
+                    setFormData(prev => ({
+                      ...prev,
+                      resumeLink: response.data.url
+                    }));
+                  } catch (err) {
+                    setError('Failed to upload resume');
+                  }
+                }
+              }}
+              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
             />
           </div>
         </div>
