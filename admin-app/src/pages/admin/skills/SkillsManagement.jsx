@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
 import api from '../../../utils/api';
 
 export default function SkillsManagement() {
@@ -21,12 +22,37 @@ export default function SkillsManagement() {
   }, []);
 
   const handleDelete = async (skillId) => {
-    try {
-      await api.delete(`/api/skills/${skillId}`);
-      setSkills(skills.filter(skill => skill._id !== skillId));
-    } catch (err) {
-      setError(err.message);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action will permanently delete the skill!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await api.delete(`/api/skills/${skillId}`);
+          setSkills(skills.filter(skill => skill._id !== skillId));
+
+          Swal.fire({
+            title: "Deleted!",
+            text: "Skill has been deleted successfully.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } catch (err) {
+          Swal.fire({
+            title: "Error!",
+            text: err.message,
+            icon: "error"
+          });
+        }
+      }
+    });
   };
 
   if (loading) return <div className="text-white">Loading...</div>;
