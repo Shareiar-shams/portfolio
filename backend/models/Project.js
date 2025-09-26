@@ -7,6 +7,7 @@ const ProjectSchema = new mongoose.Schema({
   link: String,
   image: String,
   tech: [String],
+  featured: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 
