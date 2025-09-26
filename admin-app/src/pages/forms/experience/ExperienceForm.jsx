@@ -23,6 +23,16 @@ export default function ExperienceForm({ experience, isEditing = false }) {
     setError(null);
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+
       const payload = {
         ...formData,
         technologies: formData.technologies.split(',').map(tech => tech.trim()).filter(Boolean),
@@ -30,9 +40,9 @@ export default function ExperienceForm({ experience, isEditing = false }) {
       };
 
       if (isEditing) {
-        await api.put(`/api/experience/${experience._id}`, payload);
+        await api.put(`/api/experience/${experience._id}`, payload, config);
       } else {
-        await api.post('/api/experience', payload);
+        await api.post('/api/experience', payload, config);
       }
 
       navigate('/admin/experience');

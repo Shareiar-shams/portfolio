@@ -22,15 +22,27 @@ export default function ProjectForm({ project, isEditing = false }) {
     setError(null);
 
     try {
+
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+
       const payload = {
         ...formData,
         technologies: formData.technologies.split(',').map(tech => tech.trim()).filter(Boolean)
       };
+      
 
       if (isEditing) {
-        await api.put(`/api/projects/${project._id}`, payload);
+        await api.put(`/api/projects/${project._id}`, payload, config);
       } else {
-        await api.post('/api/projects', payload);
+        await api.post('/api/projects', payload, config);
       }
 
       navigate('/admin/projects');

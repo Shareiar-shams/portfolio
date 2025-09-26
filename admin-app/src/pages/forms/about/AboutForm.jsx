@@ -48,6 +48,8 @@ export default function AboutForm({ about, isEditing = false }) {
 
     try {
       const formDataToSend = new FormData();
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
       
       // Append text fields
       formDataToSend.append('name', formData.name);
@@ -77,6 +79,7 @@ export default function AboutForm({ about, isEditing = false }) {
 
       const config = {
         headers: {
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       };

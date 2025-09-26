@@ -14,15 +14,25 @@ export default function SkillForm({ skill, isEditing = false }) {
   });
 
   const handleSubmit = async (e) => {
+    
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      
       if (isEditing) {
-        await api.put(`/api/skills/${skill._id}`, formData);
+        await api.put(`/api/skills/${skill._id}`, formData, config);
       } else {
-        await api.post('/api/skills', formData);
+        await api.post('/api/skills', formData, config);
       }
 
       navigate('/admin/skills');
