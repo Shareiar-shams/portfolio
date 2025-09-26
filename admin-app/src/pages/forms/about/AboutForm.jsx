@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 
@@ -21,6 +21,25 @@ export default function AboutForm({ about, isEditing = false }) {
   });
 
   const [previewImage, setPreviewImage] = useState(null);
+  const [selectedFileName, setSelectedFileName] = useState(null);
+
+  // Cleanup preview URL when component unmounts or when preview changes
+  useEffect(() => {
+    return () => {
+      if (previewImage) {
+        URL.revokeObjectURL(previewImage);
+      }
+    };
+  }, [previewImage]);
+
+  // Helper function to get the full URL for uploaded files
+  const getFileUrl = (path) => {
+    if (!path) return null;
+    // If it's already a full URL (e.g., from cloudinary), return as is
+    if (path.startsWith('http')) return path;
+    // Otherwise, prepend the backend URL
+    return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${path}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,10 +47,44 @@ export default function AboutForm({ about, isEditing = false }) {
     setError(null);
 
     try {
+      const formDataToSend = new FormData();
+      
+      // Append text fields
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('contactEmail', formData.contactEmail);
+      formDataToSend.append('socialLinks', JSON.stringify(formData.socialLinks));
+
+      // Get file input elements
+      const profileImageInput = document.getElementById('profileImage');
+      const resumeInput = document.getElementById('resumeLink');
+
+      // Append files if they exist in the input
+      if (profileImageInput.files[0]) {
+        formDataToSend.append('profileImage', profileImageInput.files[0]);
+      } else if (formData.profileImage) {
+        // If no new file, but we have an existing image URL
+        formDataToSend.append('profileImage', formData.profileImage);
+      }
+
+      if (resumeInput.files[0]) {
+        formDataToSend.append('resume', resumeInput.files[0]);
+      } else if (formData.resumeLink) {
+        // If no new file, but we have an existing resume URL
+        formDataToSend.append('resumeLink', formData.resumeLink);
+      }
+
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+
       if (isEditing) {
-        await api.put('/api/about', formData);
+        await api.put('/api/about', formDataToSend, config);
       } else {
-        await api.post('/api/about', formData);
+        await api.post('/api/about', formDataToSend, config);
       }
       navigate('/admin/about');
     } catch (err) {
@@ -47,7 +100,7 @@ export default function AboutForm({ about, isEditing = false }) {
         {isEditing ? 'Edit About Information' : 'Create About Information'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-100 text-sm p-3 rounded-lg">
             {error}
@@ -105,13 +158,20 @@ export default function AboutForm({ about, isEditing = false }) {
               Profile Image
             </label>
 
+            {/* Show either preview of new image or existing image */}
             {(previewImage || formData.profileImage) && (
               <div className="mb-4">
                 <img
-                  src={previewImage || formData.profileImage}  // 👈 নতুন image থাকলে ওটাই show হবে
+                  src={previewImage || getFileUrl(formData.profileImage)}
                   alt="Profile Preview"
                   className="w-32 h-32 object-cover rounded-lg border-2 border-gray-700"
                 />
+                {formData.profileImage && !previewImage && (
+                  <p className="text-sm text-gray-400 mt-2">Current profile image</p>
+                )}
+                {previewImage && (
+                  <p className="text-sm text-gray-400 mt-2">New image selected</p>
+                )}
               </div>
             )}
 
@@ -119,22 +179,13 @@ export default function AboutForm({ about, isEditing = false }) {
               id="profileImage"
               type="file"
               accept="image/*"
-              onChange={async (e) => {
+              onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
-                  // লোকাল preview সেট
                   setPreviewImage(URL.createObjectURL(file));
-
-                  const formDataUpload = new FormData();
-                  formDataUpload.append('image', file);
-                  try {
-                    const response = await api.post('/api/upload', formDataUpload);
-                    setFormData(prev => ({
-                      ...prev,
-                      profileImage: response.data.url
-                    }));
-                  } catch (err) {
-                    setError('Failed to upload image');
+                  // Clean up previous preview URL
+                  if (previewImage) {
+                    URL.revokeObjectURL(previewImage);
                   }
                 }
               }}
@@ -149,6 +200,7 @@ export default function AboutForm({ about, isEditing = false }) {
             <input
               id="contactEmail"
               type="email"
+              required
               value={formData.contactEmail}
               onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
               className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -216,10 +268,11 @@ export default function AboutForm({ about, isEditing = false }) {
             <label htmlFor="resumeLink" className="block text-sm font-medium text-gray-200 mb-1">
               Resume
             </label>
-            {formData.resumeLink && (
+            {/* Show existing resume if available */}
+            {formData.resumeLink && !selectedFileName && (
               <div className="mb-4">
                 <a
-                  href={formData.resumeLink}
+                  href={getFileUrl(formData.resumeLink)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-2"
@@ -231,24 +284,27 @@ export default function AboutForm({ about, isEditing = false }) {
                 </a>
               </div>
             )}
+            
+            {/* Show newly selected file name if any */}
+            {selectedFileName && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-400 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  New file selected: {selectedFileName}
+                </p>
+              </div>
+            )}
+            
             <input
               id="resumeLink"
               type="file"
               accept=".pdf,.doc,.docx"
-              onChange={async (e) => {
+              onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
-                  const formData = new FormData();
-                  formData.append('resume', file);
-                  try {
-                    const response = await api.post('/api/upload', formData);
-                    setFormData(prev => ({
-                      ...prev,
-                      resumeLink: response.data.url
-                    }));
-                  } catch (err) {
-                    setError('Failed to upload resume');
-                  }
+                  setSelectedFileName(file.name);
                 }
               }}
               className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
@@ -260,7 +316,8 @@ export default function AboutForm({ about, isEditing = false }) {
           <button
             type="button"
             onClick={() => navigate('/admin/about')}
-            className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg shadow-sm 
+                      hover:bg-gray-300 hover:shadow-md active:bg-gray-400 transition-all duration-200"
           >
             Cancel
           </button>
@@ -270,15 +327,17 @@ export default function AboutForm({ about, isEditing = false }) {
             className={`
               px-4 py-2 text-sm font-medium text-white rounded-lg
               transition-all duration-200 ease-in-out
-              ${loading
-                ? 'bg-blue-600/50 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 hover:shadow-lg hover:shadow-blue-500/25'
+              ${
+                loading
+                  ? 'bg-blue-600/50 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 hover:shadow-lg hover:shadow-blue-500/25'
               }
             `}
           >
             {loading ? 'Saving...' : 'Save About Information'}
           </button>
         </div>
+
       </form>
     </div>
   );
