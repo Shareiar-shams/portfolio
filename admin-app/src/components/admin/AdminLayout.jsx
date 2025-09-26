@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -10,6 +10,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import api from '../../utils/api';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -23,6 +24,25 @@ export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const validateToken = async () => {
+      try {
+        // Make a request to protected endpoint to validate token
+        await api.get('/api/auth/validate');
+      } catch (error) {
+        // If token is invalid, remove it and redirect to login
+        localStorage.removeItem('token');
+        navigate('/admin/login');
+      }
+    };
+
+    validateToken();
+    // Set up interval to check token validity periodically (every 5 minutes)
+    const interval = setInterval(validateToken, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
