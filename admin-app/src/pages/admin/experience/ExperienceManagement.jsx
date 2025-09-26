@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 
 export default function ExperienceManagement() {
+  const navigate = useNavigate();
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +38,7 @@ export default function ExperienceManagement() {
         <h1 className="text-2xl font-bold text-white">Experience Management</h1>
         <button
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={() => {/* Add new experience logic */}}
+          onClick={() => navigate('/admin/experience/new')}
         >
           Add New Experience
         </button>
