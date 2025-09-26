@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 
@@ -16,15 +16,58 @@ export default function ProjectForm({ project, isEditing = false }) {
     featured: project?.featured || false
   });
 
+  const [previewImage, setPreviewImage] = useState(null);
+  
+  // Cleanup preview URL when component unmounts or when preview changes
+  useEffect(() => {
+    return () => {
+      if (previewImage) {
+        URL.revokeObjectURL(previewImage);
+      }
+    };
+  }, [previewImage]);
+
+  // Helper function to get the full URL for uploaded files
+  const getFileUrl = (path) => {
+    if (!path) return null;
+    // If it's already a full URL (e.g., from cloudinary), return as is
+    if (path.startsWith('http')) return path;
+    // Otherwise, prepend the backend URL
+    return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${path}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-
+      const formDataToSend = new FormData();
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
+
+      // Append all form fields
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('liveDemo', formData.liveDemo);
+      formDataToSend.append('sourceCode', formData.sourceCode);
+      formDataToSend.append('featured', formData.featured);
+      
+      // Handle technologies array
+      const technologiesArray = formData.technologies
+        .split(',')
+        .map(tech => tech.trim())
+        .filter(Boolean);
+      formDataToSend.append('technologies', JSON.stringify(technologiesArray));
+
+      // Handle image upload
+      const imageInput = document.getElementById('image');
+      if (imageInput.files[0]) {
+        formDataToSend.append('image', imageInput.files[0]);
+      } else if (formData.imageUrl && !previewImage) {
+        // If we have an existing image URL and no new image selected
+        formDataToSend.append('imageUrl', formData.imageUrl);
+      }
 
       const config = {
         headers: {
@@ -33,16 +76,11 @@ export default function ProjectForm({ project, isEditing = false }) {
         },
       };
 
-      const payload = {
-        ...formData,
-        technologies: formData.technologies.split(',').map(tech => tech.trim()).filter(Boolean)
-      };
-      
 
       if (isEditing) {
-        await api.put(`/api/projects/${project._id}`, payload, config);
+        await api.put(`/api/projects/${project._id}`, formDataToSend, config);
       } else {
-        await api.post('/api/projects', payload, config);
+        await api.post('/api/projects', formDataToSend, config);
       }
 
       navigate('/admin/projects');
@@ -113,19 +151,44 @@ export default function ProjectForm({ project, isEditing = false }) {
           </div>
 
           <div>
-            <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-200 mb-1">
-              Image URL
+            <label htmlFor="image" className="block text-sm font-medium text-gray-200 mb-1">
+              Porject Featured Image 
             </label>
+
+            {/* Show either preview of new image or existing image */}
+            {(previewImage || formData.image) && (
+              <div className="mb-4">
+                <img
+                  src={previewImage || getFileUrl(formData.image)}
+                  alt="Profile Preview"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-700"
+                />
+                {formData.image && !previewImage && (
+                  <p className="text-sm text-gray-400 mt-2">Current project image</p>
+                )}
+                {previewImage && (
+                  <p className="text-sm text-gray-400 mt-2">New image selected</p>
+                )}
+              </div>
+            )}
+
             <input
-              id="imageUrl"
-              type="url"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="https://example.com/image.jpg"
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setPreviewImage(URL.createObjectURL(file));
+                  // Clean up previous preview URL
+                  if (previewImage) {
+                    URL.revokeObjectURL(previewImage);
+                  }
+                }
+              }}
+              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
             />
           </div>
-
           <div>
             <label htmlFor="liveDemo" className="block text-sm font-medium text-gray-200 mb-1">
               Live Demo URL
