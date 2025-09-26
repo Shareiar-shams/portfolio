@@ -48,7 +48,7 @@ export default function SkillsManagement() {
         {skills.map(skill => (
           <div
             key={skill._id}
-            className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10"
+            className="bg-white/25 backdrop-blur-md rounded-xl p-6 border border-white/10"
           >
             <div className="flex justify-between items-start">
               <div>
