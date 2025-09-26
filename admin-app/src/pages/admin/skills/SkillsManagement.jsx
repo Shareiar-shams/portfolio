@@ -53,17 +53,7 @@ export default function SkillsManagement() {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-xl font-semibold text-white">{skill.name}</h3>
-                <div className="mt-2">
-                  <div className="flex items-center">
-                    <div className="flex-1 h-2 bg-gray-700 rounded-full">
-                      <div
-                        className="h-2 bg-blue-500 rounded-full"
-                        style={{ width: `${skill.level}%` }}
-                      ></div>
-                    </div>
-                    <span className="ml-2 text-sm text-gray-400">{skill.level}%</span>
-                  </div>
-                </div>
+                
               </div>
               <div className="flex space-x-2">
                 <button
@@ -80,7 +70,17 @@ export default function SkillsManagement() {
                 </button>
               </div>
             </div>
-            
+            <div className="mt-2">
+              <div className="flex items-center">
+                <div className="flex-1 h-2 bg-gray-700 rounded-full">
+                  <div
+                    className="h-2 bg-blue-500 rounded-full"
+                    style={{ width: `${skill.level}%` }}
+                  ></div>
+                </div>
+                <span className="ml-2 text-sm text-gray-400">{skill.level}%</span>
+              </div>
+            </div>
             <div className="mt-4">
               <h4 className="text-sm font-medium text-gray-400">Category</h4>
               <span className="mt-1 inline-block px-2 py-1 text-sm bg-gray-800 text-gray-300 rounded">
