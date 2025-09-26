@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 
 export default function SkillsManagement() {
+  const navigate = useNavigate();
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +38,7 @@ export default function SkillsManagement() {
         <h1 className="text-2xl font-bold text-white">Skills Management</h1>
         <button
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={() => {/* Add new skill logic */}}
+          onClick={() => navigate('/admin/skills/new')}
         >
           Add New Skill
         </button>
