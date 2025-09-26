@@ -15,14 +15,30 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/experience/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const experience = await Experience.findById(req.params.id);
+    if (!experience) {
+      return res.status(404).json({ msg: 'Experience not found' });
+    }
+    res.json(experience);
+  } catch (err) {
+    console.error('Error fetching experience:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+});
+
+
 // POST /api/experience (protected)
 router.post('/', auth, async (req, res) => {
   try {
-    const { company, position, startDate, endDate, current, description, technologies } = req.body;
+    const { company, position, location, startDate, endDate, current, description, technologies } = req.body;
 
     const experience = new Experience({
       company,
       position,
+      location,
       startDate,
       endDate,
       current,
