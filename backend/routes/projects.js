@@ -2,6 +2,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const router = express.Router();
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
@@ -47,20 +48,30 @@ router.post("/", auth, upload.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { title, description, link, image, tech } = req.body;
-     // Handle file paths
-    const image = req.files['image'] ? 
-      `/uploads/about/images/${req.files['image'][0].filename}` : '';
+    const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
+    
+    // Handle file paths
+    const imagePath = req.files['image'] ? 
+      `/uploads/projects/${req.files['image'][0].filename}` : '';
 
-    const project = new Project({ title, description, link, image, tech });
+    const project = new Project({
+      title,
+      description,
+      image: imagePath,
+      liveDemo,
+      sourceCode,
+      technologies: technologies ? JSON.parse(technologies) : [],
+      featured: featured === 'true'
+    });
+
     await project.save();
     res.status(201).json(project);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// PUT /api/projects/:id (protected)
 // PUT /api/projects/:id (protected)
 router.put('/:id', auth, upload.fields([
   { name: 'image', maxCount: 1 }
@@ -69,20 +80,38 @@ router.put('/:id', auth, upload.fields([
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ msg: 'Project not found' });
 
-    // fetch update fileds from req.body
-    const { title, description, link, tech } = req.body;
+    // Update fields from form data
+    const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
 
+    // Update project fields
     project.title = title || project.title;
     project.description = description || project.description;
-    project.link = link || project.link;
-    project.tech = tech || project.tech;
+    project.liveDemo = liveDemo || project.liveDemo;
+    project.sourceCode = sourceCode || project.sourceCode;
+    project.featured = featured === 'true';
+    
+    // Handle technologies
+    if (technologies) {
+      project.technologies = JSON.parse(technologies);
+    }
 
-    // if new image is uploaded, update the path
-    if (req.files['image']) {
+    // Handle image update
+    if (req.files && req.files['image']) {
+      // Delete old image if exists
+      if (project.image) {
+        const oldImagePath = path.join(__dirname, '..', project.image);
+        try {
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        } catch (err) {
+          console.error('Error deleting old image:', err);
+        }
+      }
+      
       project.image = `/uploads/projects/${req.files['image'][0].filename}`;
     }
 
-    // if no new image is uploaded, keep existing path (no action needed)
     await project.save();
     res.json(project);
 
