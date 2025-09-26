@@ -82,7 +82,7 @@ export default function SkillForm({ skill, isEditing = false }) {
               required
               min="0"
               max="100"
-              value={formData.level}
+              value={String(formData.level || "")}
               onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
               className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
