@@ -28,8 +28,7 @@ export default function ExperienceForm({ experience, isEditing = false }) {
 
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         },
       };
 
@@ -68,15 +67,15 @@ export default function ExperienceForm({ experience, isEditing = false }) {
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-200 mb-1">
+            <label htmlFor="position" className="block text-sm font-medium text-gray-200 mb-1">
               Job Title
             </label>
             <input
-              id="title"
+              id="position"
               type="text"
               required
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              value={formData.position}
+              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
               className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter job title"
             />
