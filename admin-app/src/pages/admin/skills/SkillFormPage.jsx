@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import SkillForm from '../../forms/skills/SkillForm';
 import api from '../../../utils/api';
 
 export default function SkillFormPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [skill, setSkill] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState(null);
