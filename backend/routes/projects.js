@@ -124,10 +124,28 @@ router.put('/:id', auth, upload.fields([
 // DELETE /api/projects/:id (protected)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const project = await Project.findByIdAndDelete(req.params.id);
+    // First find the project to get the image path
+    const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ msg: 'Project not found' });
-    res.json({ msg: 'Project deleted' });
+
+    // If project has an image, delete it from the uploads folder
+    if (project.image) {
+      const imagePath = path.join(__dirname, '..', project.image);
+      try {
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          // console.log(`Deleted image file: ${imagePath}`);
+        }
+      } catch (err) {
+        console.error('Error deleting project image:', err);
+      }
+    }
+
+    // Now delete the project from the database
+    await Project.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'Project and associated image deleted successfully' });
   } catch (err) {
+    console.error('Error deleting project:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
