@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/about → Create new (protected)
-router.post("/", upload.fields([
+router.post("/", auth, upload.fields([
   { name: 'profileImage', maxCount: 1 },
   { name: 'resume', maxCount: 1 }
 ]), async (req, res) => {
@@ -88,7 +88,7 @@ router.post("/", upload.fields([
 });
 
 // PUT /api/about → Update existing (protected)
-router.put("/", upload.fields([
+router.put("/", auth, upload.fields([
   { name: 'profileImage', maxCount: 1 },
   { name: 'resume', maxCount: 1 }
 ]), async (req, res) => {
