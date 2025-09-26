@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
 import api from '../../../utils/api';
 
 export default function ProjectsManagement() {
@@ -24,18 +25,39 @@ export default function ProjectsManagement() {
   }, []);
 
   const handleDelete = async (projectId, projectTitle) => {
-    if (!window.confirm(`Are you sure you want to delete "${projectTitle}"?`)) {
-      return;
-    }
+    Swal.fire({
+      title: "Are you sure you want to delete "+projectTitle+"?",
+      text: "This action will permanently delete the project!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await api.delete(`/api/projects/${projectId}`);
+          setProjects(projects.filter(project => project._id !== projectId));
+          setError(null); // Clear any existing errors
 
-    try {
-      await api.delete(`/api/projects/${projectId}`);
-      setProjects(projects.filter(project => project._id !== projectId));
-      setError(null); // Clear any existing errors
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete project');
-      console.error('Error deleting project:', err);
-    }
+          Swal.fire({
+            title: "Deleted!",
+            text: "Project has been deleted successfully.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } catch (err) {
+          setError(err.response?.data?.message || 'Failed to delete project');
+          Swal.fire({
+            title: "Error!",
+            text: err.message,
+            icon: "error"
+          });
+        }
+      }
+    });
   };
 
   if (loading) {
