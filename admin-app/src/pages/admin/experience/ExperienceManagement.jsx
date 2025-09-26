@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
 import api from '../../../utils/api';
 
 export default function ExperienceManagement() {
@@ -21,12 +22,38 @@ export default function ExperienceManagement() {
   }, []);
 
   const handleDelete = async (experienceId) => {
-    try {
-      await api.delete(`/api/experience/${experienceId}`);
-      setExperiences(experiences.filter(exp => exp._id !== experienceId));
-    } catch (err) {
-      setError(err.message);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action will permanently delete the experience!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel"
+    }).then(async (result) => {
+      if(result.isConfirmed){
+        try {
+          await api.delete(`/api/experience/${experienceId}`);
+          setExperiences(experiences.filter(exp => exp._id !== experienceId));
+
+          Swal.fire({
+            title: "Deleted!",
+            text: "Project has been deleted successfully.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } catch (err) {
+          setError(err.message?.data?.message || 'Failed to delete experience');
+          Swal.fire({
+            title: "Error!",
+            text: err.message,
+            icon: "error"
+          });
+        }
+      }
+    });
   };
 
   if (loading) return <div className="text-white">Loading...</div>;
