@@ -1,7 +1,42 @@
-const express = require("express");
-const router = express.Router();
-const About = require("../models/About");
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const About = require('../models/About');
 const auth = require('../middleware/auth');
+const router = express.Router();
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Different folders for different file types
+    const dest = file.fieldname === 'profileImage' ? 'uploads/about/images' : 'uploads/about/resumes';
+    cb(null, dest);
+  },
+  filename: (req, file, cb) => {
+    // Create unique filename with original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'profileImage') {
+      // Allow only images
+      if (!file.mimetype.startsWith('image/')) {
+        return cb(new Error('Only image files are allowed!'), false);
+      }
+    } else if (file.fieldname === 'resume') {
+      // Allow only pdfs and documents
+      const allowedMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedMimes.includes(file.mimetype)) {
+        return cb(new Error('Only PDF and Word documents are allowed!'), false);
+      }
+    }
+    cb(null, true);
+  }
+});
 
 // GET /api/about → Get About info
 router.get("/", async (req, res) => {
@@ -18,31 +53,31 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/about → Create new (protected)
-router.post("/", auth, async (req, res) => {
+router.post("/", upload.fields([
+  { name: 'profileImage', maxCount: 1 },
+  { name: 'resume', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const { name, title, description } = req.body;
+    const { name, title, description, contactEmail, socialLinks } = req.body;
 
-    if (!name || !title || !description) {
-      return res.status(400).json({ 
-        msg: "Please provide all required fields (name, title, description)" 
-      });
-    }
+    // Handle file paths
+    const profileImage = req.files['profileImage'] ? 
+      `/uploads/about/images/${req.files['profileImage'][0].filename}` : '';
+    const resumeLink = req.files['resume'] ? 
+      `/uploads/about/resumes/${req.files['resume'][0].filename}` : '';
 
-    // Check if about info already exists
-    let about = await About.findOne();
+    const about = new About({
+      name,
+      title,
+      description,
+      contactEmail,
+      socialLinks: JSON.parse(socialLinks),
+      profileImage,
+      resumeLink
+    });
 
-    if (about) {
-      // if exists, update it instead of creating new
-      Object.assign(about, req.body);
-      await about.save();
-      return res.status(200).json({ msg: "About info updated", about });
-    }
-
-    // if not exists, create new
-    about = new About(req.body);
     await about.save();
-    res.status(201).json({ msg: "About info created", about });
-
+    res.json(about);
   } catch (err) {
     console.error('Error creating/updating about info:', err);
     if (err.name === 'ValidationError') {
@@ -53,27 +88,34 @@ router.post("/", auth, async (req, res) => {
 });
 
 // PUT /api/about → Update existing (protected)
-router.put("/", auth, async (req, res) => {
+router.put("/", upload.fields([
+  { name: 'profileImage', maxCount: 1 },
+  { name: 'resume', maxCount: 1 }
+]), async (req, res) => {
   try {
-    // Validate required fields
-    const { name, title, description } = req.body;
-    if (!name || !title || !description) {
-      return res.status(400).json({ 
-        msg: "Please provide all required fields (name, title, description)" 
-      });
+    const { name, title, description, contactEmail, socialLinks } = req.body;
+    const updateData = {
+      name,
+      title,
+      description,
+      contactEmail,
+      socialLinks: JSON.parse(socialLinks)
+    };
+
+    // Only update file paths if new files were uploaded
+    if (req.files['profileImage']) {
+      updateData.profileImage = `/uploads/about/images/${req.files['profileImage'][0].filename}`;
+    } else if (req.body.profileImage) {
+      updateData.profileImage = req.body.profileImage;
     }
 
-    // Find and update the latest about document, or create new if none exists
-    let about = await About.findOne();
-    
-    if (!about) {
-      about = new About(req.body);
-    } else {
-      // Update existing document
-      Object.assign(about, req.body);
+    if (req.files['resume']) {
+      updateData.resumeLink = `/uploads/about/resumes/${req.files['resume'][0].filename}`;
+    } else if (req.body.resumeLink) {
+      updateData.resumeLink = req.body.resumeLink;
     }
 
-    await about.save();
+    const about = await About.findOneAndUpdate({}, updateData, { new: true });
     res.json(about);
   } catch (err) {
     console.error('Error updating about info:', err);
