@@ -4,6 +4,7 @@ const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
@@ -22,6 +23,12 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
+});
+
+// GET /api/auth/validate
+router.get('/validate', auth, (req, res) => {
+  // If middleware passes, token is valid
+  res.json({ valid: true });
 });
 
 module.exports = router;
