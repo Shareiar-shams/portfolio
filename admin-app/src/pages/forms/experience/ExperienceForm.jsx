@@ -7,7 +7,7 @@ export default function ExperienceForm({ experience, isEditing = false }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    title: experience?.title || '',
+    position: experience?.position || '',
     company: experience?.company || '',
     location: experience?.location || '',
     startDate: experience?.startDate ? new Date(experience.startDate).toISOString().split('T')[0] : '',
