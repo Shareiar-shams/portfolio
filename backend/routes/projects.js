@@ -43,6 +43,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/projects/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ msg: 'Project not found' });
+    }
+    res.json(project);
+  } catch (err) {
+    console.error('Error fetching project:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+});
+
 // POST /api/projects (protected)
 router.post("/", auth, upload.fields([
   { name: 'image', maxCount: 1 }
