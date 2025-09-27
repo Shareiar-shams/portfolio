@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const VisitorSchema = new mongoose.Schema({
   ip: { type: String, unique: true },
-  userAgent: String,
+  userAgent: {type: String},
   createdAt: { type: Date, default: Date.now }
 });
 
