@@ -21,9 +21,19 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Update sidebar state on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const validateToken = async () => {
@@ -55,10 +65,20 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      {/* Overlay for mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Mobile menu button */}
       <button
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-800 lg:hidden"
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-800 lg:hidden hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+        aria-label="Toggle menu"
       >
         {isSidebarOpen ? (
           <X className="h-6 w-6 text-white" />
@@ -71,7 +91,7 @@ export default function AdminLayout() {
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 bg-opacity-95 backdrop-blur-lg transform transition-transform duration-200 ease-in-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+        } lg:translate-x-0 shadow-xl`}
       >
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-center h-16 px-4 bg-gray-800 bg-opacity-50">
@@ -117,10 +137,14 @@ export default function AdminLayout() {
       <main
         className={`transition-all duration-200 ease-in-out ${
           isSidebarOpen ? 'lg:ml-64' : ''
-        }`}
+        } pt-16 lg:pt-0`}
       >
-        <div className="min-h-screen p-6 lg:p-8">
-          <Outlet />
+        <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-xl p-4 sm:p-6">
+              <Outlet />
+            </div>
+          </div>
         </div>
       </main>
     </div>
