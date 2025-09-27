@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import ExperienceForm from '../../forms/experience/ExperienceForm';
 import api from '../../../utils/api';
 
 export default function ExperienceFormPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [experience, setExperience] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState(null);
