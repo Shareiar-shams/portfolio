@@ -85,19 +85,25 @@ export default function ProjectsManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Projects Management</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-1">Projects Management</h1>
+          <p className="text-gray-400 text-sm">Manage your portfolio projects</p>
+        </div>
         <button
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           onClick={() => navigate('/admin/projects/new')}
         >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
           Add New Project
         </button>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {projects.length === 0 ? (
-          <div className="text-center py-8 bg-white/10 backdrop-blur-md rounded-xl border border-white/10">
+          <div className="col-span-full text-center py-8 bg-white/10 backdrop-blur-md rounded-xl border border-white/10">
             <p className="text-gray-300">No projects found.</p>
             <button
               onClick={() => navigate('/admin/projects/new')}
@@ -109,43 +115,90 @@ export default function ProjectsManagement() {
         ) : projects.map(project => (
           <div
             key={project._id}
-            className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10"
+            className="group bg-white/10 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden hover:bg-white/[0.15] transition-all duration-300"
           >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-xl font-semibold text-white">{project.title}</h3>
-                <p className="text-gray-300 mt-2">{project.description}</p>
-              </div>
-              <div className="flex space-x-2">
+            {/* Project Image */}
+            <div className="relative w-full h-48 overflow-hidden bg-gray-900">
+              {project.image ? (
+                <img
+                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${project.image}`}
+                  alt={project.title}
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/placeholder-project.jpg';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                  <span className="text-gray-400">No image available</span>
+                </div>
+              )}
+              
+              {/* Action Buttons Overlay */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                 <button
-                  className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   onClick={() => navigate(`/admin/projects/edit/${project._id}`)}
                 >
                   Edit
                 </button>
                 <button
-                  className="px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30 transition-colors"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   onClick={() => handleDelete(project._id, project.title)}
                 >
                   Delete
                 </button>
               </div>
             </div>
-            
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-400">Technologies</h4>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {project.tech?.map((tech, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 text-sm bg-gray-800 text-gray-300 rounded"
-                  >
-                    {tech}
-                  </span>
-                )) || (
-                  <span className="text-gray-400 text-sm italic">No technologies specified</span>
-                )}
+
+            {/* Project Info */}
+            <div className="p-5">
+              <h3 className="text-xl font-semibold text-white mb-2 truncate">{project.title}</h3>
+              <p className="text-gray-300 text-sm line-clamp-2 mb-4">{project.description}</p>
+              
+              {/* Technologies */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-400">Technologies</h4>
+                <div className="flex flex-wrap gap-2">
+                  {project.technologies?.map((tech, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs bg-gray-800/80 text-gray-300 rounded-full"
+                    >
+                      {tech}
+                    </span>
+                  )) || (
+                    <span className="text-gray-400 text-sm italic">No technologies specified</span>
+                  )}
+                </div>
               </div>
+
+              {/* Links if available */}
+              {(project.liveDemo || project.sourceCode) && (
+                <div className="flex gap-3 mt-4 pt-4 border-t border-gray-700">
+                  {project.liveDemo && (
+                    <a
+                      href={project.liveDemo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      Live Demo →
+                    </a>
+                  )}
+                  {project.sourceCode && (
+                    <a
+                      href={project.sourceCode}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      SourceCode →
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
