@@ -10,7 +10,7 @@ export default function ProjectForm({ project, isEditing = false }) {
     title: project?.title || '',
     description: project?.description || '',
     technologies: project?.technologies?.join(', ') || '',
-    imageUrl: project?.imageUrl || '',
+    image: project?.image || '',
     liveDemo: project?.liveDemo || '',
     sourceCode: project?.sourceCode || '',
     featured: project?.featured || false
@@ -64,9 +64,9 @@ export default function ProjectForm({ project, isEditing = false }) {
       const imageInput = document.getElementById('image');
       if (imageInput.files[0]) {
         formDataToSend.append('image', imageInput.files[0]);
-      } else if (formData.imageUrl && !previewImage) {
+      } else if (formData.image && !previewImage) {
         // If we have an existing image URL and no new image selected
-        formDataToSend.append('imageUrl', formData.imageUrl);
+        formDataToSend.append('image', formData.image);
       }
 
       const config = {
