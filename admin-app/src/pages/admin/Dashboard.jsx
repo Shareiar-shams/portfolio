@@ -33,13 +33,14 @@ export default function Dashboard() {
     Promise.all([
       api.get('/api/projects'),
       api.get('/api/skills'),
-      api.get('/api/experience')
-    ]).then(([projects, skills, experience]) => {
+      api.get('/api/experience'),
+      api.get('/api/visitors/total')
+    ]).then(([projects, skills, experience, visitors]) => {
       setStats({
         projects: projects.data.length,
         skills: skills.data.length,
         experience: experience.data.length,
-        visitors: Math.floor(Math.random() * 1000) // Mock data for demonstration
+        visitors: visitors.data.total
       });
     }).catch(err => console.error(err));
   }, []);
