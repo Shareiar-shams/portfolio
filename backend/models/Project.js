@@ -6,7 +6,9 @@ const ProjectSchema = new mongoose.Schema({
   description: String,
   link: String,
   image: String,
-  tech: [String],
+  technologies: [String],
+  liveDemo: String,
+  sourceCode: String,
   featured: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
