@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from "axios";
+import api from './utils/api';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -56,7 +56,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    axios.post("/api/visitors/visit")
+    api.post("/api/visitors/visit")
       .then(res => setVisitors(res.data.total))
       .catch(err => console.error(err));
   }, []);
