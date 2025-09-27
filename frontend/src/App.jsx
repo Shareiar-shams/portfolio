@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import axios from "axios";
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -10,6 +11,7 @@ import MouseFollower from './components/MouseFollower';
 import BackgroundParticles from './components/BackgroundParticles';
 
 const App = () => {
+  const [visitors, setVisitors] = useState(0);
   const [activeSection, setActiveSection] = useState('hero');
   const [isVisible, setIsVisible] = useState({});
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -53,6 +55,12 @@ const App = () => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    axios.post("/api/visitors/visit")
+      .then(res => setVisitors(res.data.total))
+      .catch(err => console.error(err));
+  }, []);
+  
   useEffect(() => {
     const handleMouseMove = e => setMousePosition({ x: e.clientX, y: e.clientY });
     window.addEventListener('mousemove', handleMouseMove);
