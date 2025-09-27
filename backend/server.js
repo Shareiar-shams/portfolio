@@ -7,8 +7,12 @@ require('dotenv').config();
 const app = express();
 connectDB();
 
+// Trust proxy for correct IP retrieval behind proxies (e.g., Heroku, Vercel)
+// use it at production
+// app.set("trust proxy", true);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173'
+  origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : 'http://localhost:5173'
 }));
 app.use(express.json());
 
