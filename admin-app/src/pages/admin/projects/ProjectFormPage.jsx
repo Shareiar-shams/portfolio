@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import ProjectForm from '../../forms/projects/ProjectForm';
 import api from '../../../utils/api';
 
 export default function ProjectFormPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState(null);
