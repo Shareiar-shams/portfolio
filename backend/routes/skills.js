@@ -12,6 +12,21 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/skills/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const skill = await Skill.findById(req.params.id);
+    if (!skill) {
+      return res.status(404).json({ msg: 'Skill not found' });
+    }
+    res.json(skill);
+  } catch (err) {
+    console.error('Error fetching skill:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+});
+
+// POST /api/skills (protected)
 router.post('/', auth, async (req, res) => {
   const skill = new Skill(req.body);
   try {
