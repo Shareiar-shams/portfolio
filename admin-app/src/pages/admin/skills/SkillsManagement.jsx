@@ -84,7 +84,7 @@ export default function SkillsManagement() {
               <div className="flex space-x-2">
                 <button
                   className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30 transition-colors"
-                  onClick={() => {/* Edit skill logic */}}
+                  onClick={() => navigate(`/admin/skills/edit/${skill._id}`)}
                 >
                   Edit
                 </button>
