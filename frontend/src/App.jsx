@@ -153,7 +153,7 @@ const App = () => {
         <Experience isVisible={isVisible} experiences={experiences} />
         <Skills isVisible={isVisible} skills={skills} />
         <Projects isVisible={isVisible} projects={projects} />
-        <Contact isVisible={isVisible} />
+        <Contact isVisible={isVisible} data={about}/>
         <Footer visitorCount={visitors} data={about} />
       </main>
     </div>
