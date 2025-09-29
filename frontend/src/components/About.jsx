@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code, Palette, Zap, User } from 'lucide-react';
+import { Code, Cpu, Zap, User } from 'lucide-react';
 import { getFileUrl } from '../helpers/fileHelpers';
 
 const About = ({ isVisible, data }) => (
@@ -26,8 +26,8 @@ const About = ({ isVisible, data }) => (
                 <span>Clean Code</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Palette className="w-5 h-5 text-blue-400" />
-                <span>Creative Design</span>
+                <Cpu className="w-5 h-5 text-blue-400" /> {/* Use lucide-react Cpu icon */}
+                <span>Efficient Algorithms</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Zap className="w-5 h-5 text-purple-400" />
