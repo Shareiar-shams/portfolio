@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../../../utils/toast';
 import api from '../../../utils/api';
 
 export default function AboutForm({ about, isEditing = false }) {
@@ -86,12 +87,15 @@ export default function AboutForm({ about, isEditing = false }) {
 
       if (isEditing) {
         await api.put('/api/about', formDataToSend, config);
+        showToast('success', 'About Updated', 'About information updated successfully');
       } else {
         await api.post('/api/about', formDataToSend, config);
+        showToast('success', 'About Created', 'About information added successfully');
       }
       navigate('/admin/about');
     } catch (err) {
-      setError(err.response?.data?.msg || 'Failed to save about information');
+      setError(err.response?.data?.msg || err.message || 'Failed to save about information');
+      showToast('error', 'Error', err.response?.data?.msg || 'Something went wrong!');
     } finally {
       setLoading(false);
     }
