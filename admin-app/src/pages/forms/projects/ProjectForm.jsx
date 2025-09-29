@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../../../utils/toast';
 import api from '../../../utils/api';
 
 export default function ProjectForm({ project, isEditing = false }) {
@@ -79,13 +80,16 @@ export default function ProjectForm({ project, isEditing = false }) {
 
       if (isEditing) {
         await api.put(`/api/projects/${project._id}`, formDataToSend, config);
+        showToast('success', 'Project Updated', 'Project updated successfully');
       } else {
         await api.post('/api/projects', formDataToSend, config);
+        showToast('success', 'Project Created', 'Project created successfully');
       }
 
       navigate('/admin/projects');
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to save project');
+      showToast('error', 'Error', err.response?.data?.msg || 'Something went wrong!');
     } finally {
       setLoading(false);
     }

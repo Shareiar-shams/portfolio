@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../../../utils/toast';
 import api from '../../../utils/api';
 
 export default function SkillForm({ skill, isEditing = false }) {
@@ -31,13 +32,16 @@ export default function SkillForm({ skill, isEditing = false }) {
       
       if (isEditing) {
         await api.put(`/api/skills/${skill._id}`, formData, config);
+        showToast('success', 'Skill Updated', 'Skill updated successfully');
       } else {
         await api.post('/api/skills', formData, config);
+        showToast('success', 'Skill Added', 'Skill added successfully');
       }
 
       navigate('/admin/skills');
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to save skill');
+      showToast('error', 'Error', err.response?.data?.msg || 'Something went wrong!');
     } finally {
       setLoading(false);
     }
