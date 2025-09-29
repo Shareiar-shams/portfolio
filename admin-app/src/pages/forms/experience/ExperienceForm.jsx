@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { showToast } from '../../../utils/toast';
 import api from '../../../utils/api';
 
 export default function ExperienceForm({ experience, isEditing = false }) {
@@ -40,13 +41,16 @@ export default function ExperienceForm({ experience, isEditing = false }) {
 
       if (isEditing) {
         await api.put(`/api/experience/${experience._id}`, payload, config);
+        showToast('success', 'Experience Updated', 'Experience updated successfully');
       } else {
         await api.post('/api/experience', payload, config);
+        showToast('success', 'Experience Added', 'Experience added successfully');
       }
 
       navigate('/admin/experience');
     } catch (err) {
       setError(err.response?.data?.msg || 'Failed to save experience');
+      showToast('error', 'Error', err.response?.data?.msg || 'Something went wrong!');
     } finally {
       setLoading(false);
     }
