@@ -61,34 +61,6 @@ const App = () => {
     fetchData();
   }, []);
 
-  // Temporary projects data while loading
-  // const projects = [
-  //   {
-  //     title: 'E-Commerce Platform',
-  //     description: 'Full-stack e-commerce solution with React, Node.js, and MongoDB',
-  //     image: '/images/placeholder-project.jpg',
-  //     tech: ['React', 'Node.js', 'MongoDB', 'Stripe'],
-  //     demo: 'https://example.com',
-  //     github: 'https://github.com'
-  //   },
-  //   {
-  //     title: 'Task Management App',
-  //     description: 'Collaborative task management with real-time updates',
-  //     image: '/images/placeholder-project.jpg',
-  //     tech: ['React', 'Socket.io', 'Express', 'PostgreSQL'],
-  //     demo: 'https://example.com',
-  //     github: 'https://github.com'
-  //   },
-  //   {
-  //     title: 'Weather Dashboard',
-  //     description: 'Beautiful weather app with location-based forecasts',
-  //     image: '/images/placeholder-project.jpg',
-  //     tech: ['React', 'API Integration', 'Charts.js'],
-  //     demo: 'https://example.com',
-  //     github: 'https://github.com'
-  //   }
-  // ];
-
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
