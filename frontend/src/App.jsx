@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import api from './utils/api';
 import Navigation from './components/Navigation';
+import ProjectDetails from './components/ProjectDetails';
 import Hero from './components/Hero';
 import About from './components/About';
 import Skills from './components/Skills';
@@ -98,7 +100,7 @@ const App = () => {
       const heroBottom = heroSection.getBoundingClientRect().bottom;
       
       // Show navbar if we've scrolled past 80% of hero section
-      setShowNavbar(heroBottom < window.innerHeight * 0.1);
+      setShowNavbar(heroBottom < window.innerHeight * 0.2);
     };
 
     // Initial check
@@ -170,15 +172,27 @@ const App = () => {
         </div>
       )}
 
-      <main className={`transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-        <Hero id='hero' isVisible={isVisible} scrollToSection={scrollToSection} about={about} />
-        <About id='about' isVisible={isVisible} data={about} />
-        <Experience id='experience' isVisible={isVisible} experiences={experiences} />
-        <Skills id='skills' isVisible={isVisible} skills={skills} />
-        <Projects id='project' isVisible={isVisible} projects={projects} />
-        <Contact id='contact' isVisible={isVisible} data={about}/>
-        <Footer id='footer' visitorCount={visitors} data={about} />
-      </main>
+      <BrowserRouter>
+        <main className={`transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
+          <Routes>
+            <Route path="/projects/:id" element={<ProjectDetails projects={projects} />} />
+            <Route
+              path="*"
+              element={
+                <>
+                  <Hero id='hero' isVisible={isVisible} scrollToSection={scrollToSection} about={about} />
+                  <About id='about' isVisible={isVisible} data={about} />
+                  <Experience id='experience' isVisible={isVisible} experiences={experiences} />
+                  <Skills id='skills' isVisible={isVisible} skills={skills} />
+                  <Projects id='project' isVisible={isVisible} projects={projects} />
+                  <Contact id='contact' isVisible={isVisible} data={about}/>
+                  <Footer id='footer' visitorCount={visitors} data={about} />
+                </>
+              }
+            />
+          </Routes>
+        </main>
+      </BrowserRouter>
     </div>
   );
 };
