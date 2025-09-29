@@ -5,6 +5,7 @@ import Hero from './components/Hero';
 import About from './components/About';
 import Skills from './components/Skills';
 import Projects from './components/Projects';
+import Experience from './components/Experience';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import MouseFollower from './components/MouseFollower';
@@ -15,81 +16,174 @@ const App = () => {
   const [activeSection, setActiveSection] = useState('hero');
   const [isVisible, setIsVisible] = useState({});
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // Data states
+  const [skills, setSkills] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [experiences, setExperiences] = useState([]);
+  const [about, setAbout] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const skills = [
-    { name: 'React', level: 90, color: 'from-blue-400 to-cyan-400' },
-    { name: 'JavaScript', level: 85, color: 'from-yellow-400 to-orange-400' },
-    { name: 'Node.js', level: 80, color: 'from-green-400 to-emerald-400' },
-    { name: 'Python', level: 75, color: 'from-purple-400 to-pink-400' },
-    { name: 'UI/UX Design', level: 70, color: 'from-indigo-400 to-purple-400' }
-  ];
+  // Fetch all data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('Starting data fetch...');
+        setLoading(true);
+        
+        const skillsRes = await api.get('/api/skills');
+        console.log('Skills data:', skillsRes.data);
+        setSkills(skillsRes.data);
 
-  const projects = [
-    {
-      title: 'E-Commerce Platform',
-      description: 'Full-stack e-commerce solution with React, Node.js, and MongoDB',
-      image: '/api/placeholder/400/250',
-      tech: ['React', 'Node.js', 'MongoDB', 'Stripe'],
-      demo: '#',
-      github: '#'
-    },
-    {
-      title: 'Task Management App',
-      description: 'Collaborative task management with real-time updates',
-      image: '/api/placeholder/400/250',
-      tech: ['React', 'Socket.io', 'Express', 'PostgreSQL'],
-      demo: '#',
-      github: '#'
-    },
-    {
-      title: 'Weather Dashboard',
-      description: 'Beautiful weather app with location-based forecasts',
-      image: '/api/placeholder/400/250',
-      tech: ['React', 'API Integration', 'Charts.js'],
-      demo: '#',
-      github: '#'
-    }
-  ];
+        const projectsRes = await api.get('/api/projects');
+        console.log('Projects data:', projectsRes.data);
+        setProjects(projectsRes.data);
+
+        const experiencesRes = await api.get('/api/experience');
+        console.log('Experience data:', experiencesRes.data);
+        setExperiences(experiencesRes.data);
+
+        const aboutRes = await api.get('/api/about');
+        console.log('About data:', aboutRes.data);
+        setAbout(aboutRes.data);
+
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+        setError('Failed to load content. Please try again later.');
+      } finally {
+        console.log('Fetch complete, setting loading to false');
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Temporary projects data while loading
+  // const projects = [
+  //   {
+  //     title: 'E-Commerce Platform',
+  //     description: 'Full-stack e-commerce solution with React, Node.js, and MongoDB',
+  //     image: '/images/placeholder-project.jpg',
+  //     tech: ['React', 'Node.js', 'MongoDB', 'Stripe'],
+  //     demo: 'https://example.com',
+  //     github: 'https://github.com'
+  //   },
+  //   {
+  //     title: 'Task Management App',
+  //     description: 'Collaborative task management with real-time updates',
+  //     image: '/images/placeholder-project.jpg',
+  //     tech: ['React', 'Socket.io', 'Express', 'PostgreSQL'],
+  //     demo: 'https://example.com',
+  //     github: 'https://github.com'
+  //   },
+  //   {
+  //     title: 'Weather Dashboard',
+  //     description: 'Beautiful weather app with location-based forecasts',
+  //     image: '/images/placeholder-project.jpg',
+  //     tech: ['React', 'API Integration', 'Charts.js'],
+  //     demo: 'https://example.com',
+  //     github: 'https://github.com'
+  //   }
+  // ];
 
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    api.post("/api/visitors/visit")
-      .then(res => setVisitors(res.data.total))
-      .catch(err => console.error(err));
+    const trackVisitor = async () => {
+      try {
+        const res = await api.post("/api/visitors/visit");
+        setVisitors(res.data.total);
+      } catch (err) {
+        // Set a default value if the visitor count fails
+        setVisitors(0);
+        console.error('Failed to track visitor:', err.message);
+      }
+    };
+
+    trackVisitor();
   }, []);
   
   useEffect(() => {
-    const handleMouseMove = e => setMousePosition({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', handleMouseMove);
+    const handleMouseMove = (e) => {
+      const updatePosition = () => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      };
+      requestAnimationFrame(updatePosition);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
+    const handleIntersection = (entries) => {
       entries.forEach(entry => {
         setIsVisible(prev => ({ ...prev, [entry.target.id]: entry.isIntersecting }));
         if (entry.isIntersecting) setActiveSection(entry.target.id);
       });
-    }, { threshold: 0.1, rootMargin: '-50px' });
+    };
 
-    document.querySelectorAll('section[id]').forEach(section => observer.observe(section));
-    return () => observer.disconnect();
+    const observer = new IntersectionObserver(handleIntersection, {
+      threshold: 0.1,
+      rootMargin: '-50px'
+    });
+
+    const sections = document.querySelectorAll('section[id]');
+    sections.forEach(section => observer.observe(section));
+
+    return () => {
+      sections.forEach(section => observer.unobserve(section));
+      observer.disconnect();
+    };
   }, []);
-
+  
   return (
     <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white min-h-screen relative overflow-hidden">
       <BackgroundParticles />
-      <Navigation activeSection={activeSection} scrollToSection={scrollToSection} />
-      <Hero isVisible={isVisible} scrollToSection={scrollToSection} />
-      <About isVisible={isVisible} />
-      <Skills isVisible={isVisible} skills={skills} />
-      <Projects isVisible={isVisible} projects={projects} />
-      <Contact isVisible={isVisible} />
-      <Footer />
       <MouseFollower position={mousePosition} />
+      <Navigation activeSection={activeSection} scrollToSection={scrollToSection} />
+      
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm z-50">
+          <div className="text-white flex flex-col items-center gap-4">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-cyan-400/30 animate-ping"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-cyan-400 animate-spin"></div>
+            </div>
+            <p className="text-cyan-400">Loading your portfolio...</p>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm z-50 p-4">
+          <div className="bg-red-500/20 border border-red-500/50 text-red-100 p-6 rounded-lg max-w-md text-center">
+            <h3 className="text-lg font-semibold mb-2">Error</h3>
+            <p>{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      <main className={`transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
+        <Hero isVisible={isVisible} scrollToSection={scrollToSection} about={about} />
+        <About isVisible={isVisible} data={about} />
+        <Experience isVisible={isVisible} experiences={experiences} />
+        <Skills isVisible={isVisible} skills={skills} />
+        <Projects isVisible={isVisible} projects={projects} />
+        <Contact isVisible={isVisible} />
+        <Footer visitorCount={visitors} />
+      </main>
     </div>
   );
 };
