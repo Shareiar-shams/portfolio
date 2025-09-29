@@ -1,13 +1,6 @@
 import React from 'react';
 import { Code, Palette, Zap, User } from 'lucide-react';
-
-const getFileUrl = (path) => {
-  if (!path) return null;
-  // If it's already a full URL (e.g., from cloudinary), return as is
-  if (path.startsWith('http')) return path;
-  // Otherwise, prepend the backend URL
-  return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${path}`;
-};
+import { getFileUrl } from '../helpers/fileHelpers';
 
 const About = ({ isVisible, data }) => (
   <section id="about" className="py-20 px-6">
@@ -47,7 +40,7 @@ const About = ({ isVisible, data }) => (
               <div className="w-64 h-64 mx-auto overflow-hidden rounded-full p-1 bg-gradient-to-r from-cyan-400 to-blue-400">
                 <img 
                   src={getFileUrl(data.profileImage)} 
-                  alt={data?.name || "Profile"} 
+                  alt={data?.name || "Profile Image"} 
                   className="w-full h-full object-cover rounded-full"
                 />
               </div>
