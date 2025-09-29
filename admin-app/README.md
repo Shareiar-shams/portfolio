@@ -1,70 +1,90 @@
-# Getting Started with Create React App
+# Portfolio Admin Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the admin dashboard application for managing the portfolio website content. It provides a secure interface for administrators to manage various sections of the portfolio including projects, skills, experience, and about information.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Secure Authentication**: Admin login with protected routes
+- **Projects Management**: Add, edit, and delete portfolio projects
+- **Skills Management**: Manage technical skills and competencies
+- **Experience Management**: Handle work experience and career history
+- **About Management**: Update personal information and resume
+- **Media Upload**: Support for images and document uploads
+- **Responsive Design**: Works on desktop and mobile devices
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React.js (v19)
+- React Router DOM (v7)
+- Axios for API calls
+- TailwindCSS for styling
+- SweetAlert2 for notifications
+- FontAwesome icons
+- Lucide React icons
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Project Structure
 
-### `npm test`
+```
+admin-app/
+├── src/
+│   ├── components/
+│   │   ├── PrivateRoute.jsx
+│   │   └── admin/
+│   │       └── AdminLayout.jsx
+│   ├── pages/
+│   │   ├── AdminLogin.jsx
+│   │   └── admin/
+│   │       ├── Dashboard.jsx
+│   │       ├── projects/
+│   │       ├── skills/
+│   │       ├── experience/
+│   │       └── about/
+│   └── utils/
+│       ├── api.js
+│       └── toast.js
+└── public/
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Getting Started
 
-### `npm run build`
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Configure environment variables:
+   Create a `.env` file in the root directory with:
+   ```
+   REACT_APP_API_URL=your_backend_api_url
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+   The app will run on [http://localhost:3000](http://localhost:3000)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Build for Production
 
-### `npm run eject`
+```bash
+npm run build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+This creates an optimized production build in the `build` folder.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Security
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- All routes except login are protected
+- JWT authentication is implemented
+- API requests are authenticated
+- Session management is handled securely
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Contributing
 
-## Learn More
+1. Create a feature branch
+2. Make your changes
+3. Submit a pull request
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## License
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is private and confidential. All rights reserved.
