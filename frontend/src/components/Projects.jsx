@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Github, Briefcase } from 'lucide-react';
+import { ExternalLink, Github } from 'lucide-react';
 
 const Projects = ({ isVisible, projects }) => (
   <section id="projects" className="py-20 px-6">
@@ -17,14 +17,25 @@ const Projects = ({ isVisible, projects }) => (
             >
               <div className="h-48 bg-gradient-to-r from-cyan-500 to-blue-500 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                  <Briefcase className="w-16 h-16 text-white" />
+                  <img
+                    src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${project.image}`}
+                    alt={project.title}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/placeholder-project.jpg';
+                    }}
+                  />
                 </div>
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-3">{project.title}</h3>
-                <p className="text-gray-400 mb-4">{project.description}</p>
+                <p className="text-gray-400 mb-4">
+                  {project.description.split(" ").slice(0, 50).join(" ")}
+                  {project.description.split(" ").length > 50 && "..."}
+                </p>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech.map((tech) => (
+                  {project.technologies.map((tech) => (
                     <span
                       key={tech}
                       className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm rounded-full"
@@ -35,14 +46,14 @@ const Projects = ({ isVisible, projects }) => (
                 </div>
                 <div className="flex space-x-4">
                   <a
-                    href={project.demo}
+                    href={project.liveDemo} target="_blank" rel="noopener noreferrer"
                     className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>Demo</span>
                   </a>
                   <a
-                    href={project.github}
+                    href={project.sourceCode} target="_blank" rel="noopener noreferrer"
                     className="flex items-center space-x-2 text-gray-400 hover:text-gray-300 transition-colors"
                   >
                     <Github className="w-4 h-4" />
