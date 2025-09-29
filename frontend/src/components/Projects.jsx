@@ -1,9 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Github } from 'lucide-react';
 import { getFileUrl } from '../helpers/fileHelpers';
 
 
-const Projects = ({ isVisible, projects }) => (
+const Projects = ({ isVisible, projects }) => {
+  const navigate = useNavigate();
+
+  return (
   <section id="projects" className="py-20 px-6">
     <div className="container mx-auto max-w-6xl">
       <div className={`transition-all duration-1000 ${isVisible.projects ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -31,7 +35,12 @@ const Projects = ({ isVisible, projects }) => (
                 </div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-3">{project.title}</h3>
+                <h3 
+                  className="text-xl font-bold mb-3 hover:text-cyan-400 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/projects/${project._id}`)}
+                >
+                  {project.title}
+                </h3>
                 <p className="text-gray-400 mb-4">
                   {project.description.split(" ").slice(0, 20).join(" ")}
                   {project.description.split(" ").length > 20 && "..."}
@@ -69,6 +78,7 @@ const Projects = ({ isVisible, projects }) => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default Projects;
