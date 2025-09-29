@@ -154,7 +154,7 @@ const App = () => {
         <Skills isVisible={isVisible} skills={skills} />
         <Projects isVisible={isVisible} projects={projects} />
         <Contact isVisible={isVisible} />
-        <Footer visitorCount={visitors} />
+        <Footer visitorCount={visitors} data={about} />
       </main>
     </div>
   );
