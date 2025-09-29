@@ -7,7 +7,12 @@ const Navigation = ({ activeSection, scrollToSection, isVisible = true }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = (section) => {
-    scrollToSection(section);
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/') {
+      window.location.href = `/#${section}`;
+    } else {
+      scrollToSection(section);
+    }
     setIsOpen(false);
   };
 
