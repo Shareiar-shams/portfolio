@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 
 const Experience = ({ isVisible, experiences }) => (
   <section id="experience" className="py-20 px-6 relative">
-    <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40 backdrop-blur-sm"></div>
+    <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/40 backdrop-blur-sm"></div>
     <div className="container mx-auto max-w-6xl relative">
       <div className={`transition-all duration-1000 ${isVisible.experience ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         <div className="text-center mb-16">
