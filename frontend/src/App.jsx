@@ -16,6 +16,7 @@ const App = () => {
   const [activeSection, setActiveSection] = useState('hero');
   const [isVisible, setIsVisible] = useState({});
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [showNavbar, setShowNavbar] = useState(false);
   
   // Data states
   const [skills, setSkills] = useState([]);
@@ -29,23 +30,19 @@ const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log('Starting data fetch...');
+        // console.log('Starting data fetch...');
         setLoading(true);
         
         const skillsRes = await api.get('/api/skills');
-        console.log('Skills data:', skillsRes.data);
         setSkills(skillsRes.data);
 
         const projectsRes = await api.get('/api/projects');
-        console.log('Projects data:', projectsRes.data);
         setProjects(projectsRes.data);
 
         const experiencesRes = await api.get('/api/experience');
-        console.log('Experience data:', experiencesRes.data);
         setExperiences(experiencesRes.data);
 
         const aboutRes = await api.get('/api/about');
-        console.log('About data:', aboutRes.data);
         setAbout(aboutRes.data);
 
         setError(null);
@@ -53,7 +50,6 @@ const App = () => {
         console.error('Failed to fetch data:', err);
         setError('Failed to load content. Please try again later.');
       } finally {
-        console.log('Fetch complete, setting loading to false');
         setLoading(false);
       }
     };
@@ -93,10 +89,33 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    const handleScroll = () => {
+      // Get the hero section
+      const heroSection = document.getElementById('hero');
+      if (!heroSection) return;
+
+      // Get hero section's bottom position relative to viewport
+      const heroBottom = heroSection.getBoundingClientRect().bottom;
+      
+      // Show navbar if we've scrolled past 80% of hero section
+      setShowNavbar(heroBottom < window.innerHeight * 0.1);
+    };
+
+    // Initial check
+    handleScroll();
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     const handleIntersection = (entries) => {
       entries.forEach(entry => {
         setIsVisible(prev => ({ ...prev, [entry.target.id]: entry.isIntersecting }));
-        if (entry.isIntersecting) setActiveSection(entry.target.id);
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
       });
     };
 
@@ -118,7 +137,11 @@ const App = () => {
     <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white min-h-screen relative overflow-hidden">
       <BackgroundParticles />
       <MouseFollower position={mousePosition} />
-      <Navigation activeSection={activeSection} scrollToSection={scrollToSection} />
+      <Navigation 
+        activeSection={activeSection} 
+        scrollToSection={scrollToSection}
+        isVisible={showNavbar}
+      />
       
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm z-50">
@@ -148,13 +171,13 @@ const App = () => {
       )}
 
       <main className={`transition-opacity duration-300 ${loading ? 'opacity-50' : 'opacity-100'}`}>
-        <Hero isVisible={isVisible} scrollToSection={scrollToSection} about={about} />
-        <About isVisible={isVisible} data={about} />
-        <Experience isVisible={isVisible} experiences={experiences} />
-        <Skills isVisible={isVisible} skills={skills} />
-        <Projects isVisible={isVisible} projects={projects} />
-        <Contact isVisible={isVisible} data={about}/>
-        <Footer visitorCount={visitors} data={about} />
+        <Hero id='hero' isVisible={isVisible} scrollToSection={scrollToSection} about={about} />
+        <About id='about' isVisible={isVisible} data={about} />
+        <Experience id='experience' isVisible={isVisible} experiences={experiences} />
+        <Skills id='skills' isVisible={isVisible} skills={skills} />
+        <Projects id='project' isVisible={isVisible} projects={projects} />
+        <Contact id='contact' isVisible={isVisible} data={about}/>
+        <Footer id='footer' visitorCount={visitors} data={about} />
       </main>
     </div>
   );

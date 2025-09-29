@@ -3,7 +3,7 @@ import { Menu, X } from "lucide-react";
 
 const SECTIONS = ["hero", "about", "skills", "projects", "contact"];
 
-const Navigation = ({ activeSection, scrollToSection }) => {
+const Navigation = ({ activeSection, scrollToSection, isVisible = true }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = (section) => {
@@ -23,7 +23,9 @@ const Navigation = ({ activeSection, scrollToSection }) => {
   );
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-black bg-opacity-20 backdrop-blur-md border-b border-white border-opacity-10">
+    <nav className={`fixed top-0 left-0 right-0 z-40 bg-black bg-opacity-20 backdrop-blur-md border-b border-white border-opacity-10 transition-all duration-300 ${
+      isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+    }`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <div
