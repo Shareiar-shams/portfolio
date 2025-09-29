@@ -99,7 +99,9 @@ router.put("/", auth, upload.fields([
       title,
       description,
       contactEmail,
-      socialLinks: JSON.parse(socialLinks)
+      socialLinks: JSON.parse(socialLinks),
+      profileImage,
+      resumeLink
     };
 
     // Only update file paths if new files were uploaded
