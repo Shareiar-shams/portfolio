@@ -1,36 +1,44 @@
 // server/routes/projects.js
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const router = express.Router();
+const createUploader = require("../config/multer");
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
 
+const path = require('path');
+const fs = require('fs');
+const router = express.Router();
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Different folders for different file types
-    const dest = 'uploads/projects/';
-    cb(null, dest);
-  },
-  filename: (req, file, cb) => {
-    // Create unique filename with original extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     // Different folders for different file types
+//     const dest = 'uploads/projects/';
+//     cb(null, dest);
+//   },
+//   filename: (req, file, cb) => {
+//     // Create unique filename with original extension
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+//     cb(null, uniqueSuffix + path.extname(file.originalname));
+//   }
+// });
 
-const upload = multer({ 
-  storage,
-  fileFilter: (req, file, cb) => {
-    // Allow only images
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed!'), false);
-    }
-    cb(null, true);
-  }
+// const upload = multer({ 
+//   storage,
+//   fileFilter: (req, file, cb) => {
+//     // Allow only images
+//     if (!file.mimetype.startsWith('image/')) {
+//       return cb(new Error('Only image files are allowed!'), false);
+//     }
+//     cb(null, true);
+//   }
+// });
+
+// Multer uploader for Projects
+const uploadProjects = createUploader({
+  folder: "portfolio/projects",
+  allowedFormats: ["jpg", "jpeg", "png", "webp"],
+  prefix: "project"
 });
 
 // GET /api/projects
@@ -58,15 +66,19 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/projects (protected)
-router.post("/", auth, upload.fields([
+router.post("/", auth, uploadProjects.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
     
     // Handle file paths
-    const imagePath = req.files['image'] ? 
-      `/uploads/projects/${req.files['image'][0].filename}` : '';
+    // const imagePath = req.files['image'] ? 
+    //   `/uploads/projects/${req.files['image'][0].filename}` : '';
+
+    const imagePath = req.files["image"]
+        ? req.files["image"][0].path // Cloudinary returns URL
+        : "";
 
     const project = new Project({
       title,
@@ -87,7 +99,7 @@ router.post("/", auth, upload.fields([
 });
 
 // PUT /api/projects/:id (protected)
-router.put('/:id', auth, upload.fields([
+router.put('/:id', auth, uploadProjects.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
   try {
@@ -110,20 +122,25 @@ router.put('/:id', auth, upload.fields([
     }
 
     // Handle image update
-    if (req.files && req.files['image']) {
-      // Delete old image if exists
-      if (project.image) {
-        const oldImagePath = path.join(__dirname, '..', project.image);
-        try {
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-          }
-        } catch (err) {
-          console.error('Error deleting old image:', err);
-        }
-      }
+    // if (req.files && req.files['image']) {
+    //   // Delete old image if exists
+    //   if (project.image) {
+    //     const oldImagePath = path.join(__dirname, '..', project.image);
+    //     try {
+    //       if (fs.existsSync(oldImagePath)) {
+    //         fs.unlinkSync(oldImagePath);
+    //       }
+    //     } catch (err) {
+    //       console.error('Error deleting old image:', err);
+    //     }
+    //   }
       
-      project.image = `/uploads/projects/${req.files['image'][0].filename}`;
+    //   project.image = `/uploads/projects/${req.files['image'][0].filename}`;
+    // }
+
+    // If new image uploaded → replace
+    if (req.files["image"]) {
+      project.image = req.files["image"][0].path;
     }
 
     await project.save();
@@ -143,17 +160,17 @@ router.delete('/:id', auth, async (req, res) => {
     if (!project) return res.status(404).json({ msg: 'Project not found' });
 
     // If project has an image, delete it from the uploads folder
-    if (project.image) {
-      const imagePath = path.join(__dirname, '..', project.image);
-      try {
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-          // console.log(`Deleted image file: ${imagePath}`);
-        }
-      } catch (err) {
-        console.error('Error deleting project image:', err);
-      }
-    }
+    // if (project.image) {
+    //   const imagePath = path.join(__dirname, '..', project.image);
+    //   try {
+    //     if (fs.existsSync(imagePath)) {
+    //       fs.unlinkSync(imagePath);
+    //       // console.log(`Deleted image file: ${imagePath}`);
+    //     }
+    //   } catch (err) {
+    //     console.error('Error deleting project image:', err);
+    //   }
+    // }
 
     // Now delete the project from the database
     await Project.findByIdAndDelete(req.params.id);

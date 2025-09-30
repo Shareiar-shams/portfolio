@@ -3,39 +3,48 @@ const multer = require('multer');
 const path = require('path');
 const About = require('../models/About');
 const auth = require('../middleware/auth');
+const createUploader = require("../config/multer");
+
 const router = express.Router();
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Different folders for different file types
-    const dest = file.fieldname === 'profileImage' ? 'uploads/about/images' : 'uploads/about/resumes';
-    cb(null, dest);
-  },
-  filename: (req, file, cb) => {
-    // Create unique filename with original extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     // Different folders for different file types
+//     const dest = file.fieldname === 'profileImage' ? 'uploads/about/images' : 'uploads/about/resumes';
+//     cb(null, dest);
+//   },
+//   filename: (req, file, cb) => {
+//     // Create unique filename with original extension
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+//     cb(null, uniqueSuffix + path.extname(file.originalname));
+//   }
+// });
 
-const upload = multer({ 
-  storage,
-  fileFilter: (req, file, cb) => {
-    if (file.fieldname === 'profileImage') {
-      // Allow only images
-      if (!file.mimetype.startsWith('image/')) {
-        return cb(new Error('Only image files are allowed!'), false);
-      }
-    } else if (file.fieldname === 'resume') {
-      // Allow only pdfs and documents
-      const allowedMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedMimes.includes(file.mimetype)) {
-        return cb(new Error('Only PDF and Word documents are allowed!'), false);
-      }
-    }
-    cb(null, true);
-  }
+// const upload = multer({ 
+//   storage,
+//   fileFilter: (req, file, cb) => {
+//     if (file.fieldname === 'profileImage') {
+//       // Allow only images
+//       if (!file.mimetype.startsWith('image/')) {
+//         return cb(new Error('Only image files are allowed!'), false);
+//       }
+//     } else if (file.fieldname === 'resume') {
+//       // Allow only pdfs and documents
+//       const allowedMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+//       if (!allowedMimes.includes(file.mimetype)) {
+//         return cb(new Error('Only PDF and Word documents are allowed!'), false);
+//       }
+//     }
+//     cb(null, true);
+//   }
+// });
+
+// Multer uploader for About
+const uploadAbout = createUploader({
+  folder: "portfolio/about",
+  allowedFormats: ["jpg", "jpeg", "png", "webp", "pdf", "doc", "docx"],
+  prefix: "about"
 });
 
 // GET /api/about → Get About info
@@ -53,7 +62,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/about → Create new (protected)
-router.post("/", auth, upload.fields([
+router.post("/", auth, uploadAbout.fields([
   { name: 'profileImage', maxCount: 1 },
   { name: 'resume', maxCount: 1 }
 ]), async (req, res) => {
@@ -61,10 +70,17 @@ router.post("/", auth, upload.fields([
     const { name, title, description, contactEmail, socialLinks } = req.body;
 
     // Handle file paths
-    const profileImage = req.files['profileImage'] ? 
-      `/uploads/about/images/${req.files['profileImage'][0].filename}` : '';
-    const resumeLink = req.files['resume'] ? 
-      `/uploads/about/resumes/${req.files['resume'][0].filename}` : '';
+    // const profileImage = req.files['profileImage'] ? 
+    //   `/uploads/about/images/${req.files['profileImage'][0].filename}` : '';
+    // const resumeLink = req.files['resume'] ? 
+    //   `/uploads/about/resumes/${req.files['resume'][0].filename}` : '';
+
+    const profileImage = req.files["profileImage"]
+      ? req.files["profileImage"][0].path
+      : "";
+    const resumeLink = req.files["resume"]
+      ? req.files["resume"][0].path
+      : "";
 
     const about = new About({
       name,
@@ -88,7 +104,7 @@ router.post("/", auth, upload.fields([
 });
 
 // PUT /api/about → Update existing (protected)
-router.put("/", auth, upload.fields([
+router.put("/", auth, uploadAbout.fields([
   { name: 'profileImage', maxCount: 1 },
   { name: 'resume', maxCount: 1 }
 ]), async (req, res) => {
@@ -105,15 +121,27 @@ router.put("/", auth, upload.fields([
     };
 
     // Only update file paths if new files were uploaded
-    if (req.files['profileImage']) {
-      updateData.profileImage = `/uploads/about/images/${req.files['profileImage'][0].filename}`;
-    } else if (req.body.profileImage) {
+    // if (req.files['profileImage']) {
+    //   updateData.profileImage = `/uploads/about/images/${req.files['profileImage'][0].filename}`;
+    // } else if (req.body.profileImage) {
+    //   updateData.profileImage = req.body.profileImage;
+    // }
+
+    // if (req.files['resume']) {
+    //   updateData.resumeLink = `/uploads/about/resumes/${req.files['resume'][0].filename}`;
+    // } else if (req.body.resumeLink) {
+    //   updateData.resumeLink = req.body.resumeLink;
+    // }
+
+    if(req.files["profileImage"]) {
+      updateData.profileImage = req.files["profileImage"][0].path;
+    }else{
       updateData.profileImage = req.body.profileImage;
     }
 
-    if (req.files['resume']) {
-      updateData.resumeLink = `/uploads/about/resumes/${req.files['resume'][0].filename}`;
-    } else if (req.body.resumeLink) {
+    if(req.files["resume"]) {
+      updateData.resumeLink = req.files["resume"][0].path;
+    }else{
       updateData.resumeLink = req.body.resumeLink;
     }
 
