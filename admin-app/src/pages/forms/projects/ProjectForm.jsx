@@ -93,7 +93,7 @@ export default function ProjectForm({ project, isEditing = false }) {
         {isEditing ? 'Edit Project' : 'Create New Project'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-100 text-sm p-3 rounded-lg">
             {error}
