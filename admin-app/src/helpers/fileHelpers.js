@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 
 // Helper to get full URL for a file path
 export const getFileUrl = (path) => {
