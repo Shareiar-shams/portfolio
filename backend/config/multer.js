@@ -2,23 +2,36 @@ const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("./cloudinary");
 
-// Factory function: create storage for any folder
 function createStorage(folder, allowedFormats, prefix) {
   return new CloudinaryStorage({
     cloudinary,
     params: {
       folder,
       allowed_formats: allowedFormats,
-      public_id: () => `${prefix}_${Date.now()}`
+      public_id: (req, file) => {
+        return `${prefix}_${Date.now()}_${Math.round(Math.random() * 1E9)}`;
+      },
+      resource_type: "auto"
     }
   });
 }
 
-// Upload middleware factory
 function createUploader({ folder, allowedFormats, prefix }) {
-  return multer({
+  const upload = multer({
     storage: createStorage(folder, allowedFormats, prefix),
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      // Check file type
+      if (!file.mimetype.startsWith('image/')) {
+        return cb(new Error('Only image files are allowed!'), false);
+      }
+      cb(null, true);
+    }
   });
+
+  return upload;
 }
 
 module.exports = createUploader;

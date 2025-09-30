@@ -5,43 +5,16 @@ const createUploader = require("../config/multer");
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
 
-const path = require('path');
-const fs = require('fs');
 const router = express.Router();
-
-// Configure multer for file uploads
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     // Different folders for different file types
-//     const dest = 'uploads/projects/';
-//     cb(null, dest);
-//   },
-//   filename: (req, file, cb) => {
-//     // Create unique filename with original extension
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-//     cb(null, uniqueSuffix + path.extname(file.originalname));
-//   }
-// });
-
-// const upload = multer({ 
-//   storage,
-//   fileFilter: (req, file, cb) => {
-//     // Allow only images
-//     if (!file.mimetype.startsWith('image/')) {
-//       return cb(new Error('Only image files are allowed!'), false);
-//     }
-//     cb(null, true);
-//   }
-// });
 
 // Multer uploader for Projects
 const uploadProjects = createUploader({
   folder: "portfolio/projects",
-  allowedFormats: ["jpg", "jpeg", "png", "webp"],
+  allowedFormats: ["jpg", "jpeg", "png", "webp", "gif", "svg", "avif"],
   prefix: "project"
 });
 
-// GET /api/projects
+// GET all projects
 router.get('/', async (req, res) => {
   try {
     const projects = await Project.find().sort('-createdAt');
@@ -51,50 +24,57 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/projects/:id
+// GET single project
 router.get('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
-    if (!project) {
-      return res.status(404).json({ msg: 'Project not found' });
-    }
+    if (!project) return res.status(404).json({ msg: 'Project not found' });
     res.json(project);
   } catch (err) {
-    console.error('Error fetching project:', err);
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 });
 
-// POST /api/projects (protected)
+// POST (create project)
 router.post("/", auth, uploadProjects.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
-    
-    // Log incoming data for debugging
+    // Debug logs
     console.log('Request body:', req.body);
     console.log('Request files:', req.files);
-
+    
+    const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
+    
     // Validate required fields
     if (!title || !description) {
       return res.status(400).json({ msg: 'Title and description are required' });
     }
 
-    const imagePath = req.files && req.files["image"] && req.files["image"][0]
-      ? req.files["image"][0].path
+    // Debug log for file
+    if (req.files?.image) {
+      console.log('Uploaded file details:', req.files.image[0]);
+    }
+
+    // Cloudinary URL if uploaded
+    const imagePath = (req.files?.image && req.files.image[0]) 
+      ? req.files.image[0].path 
       : "";
 
-    // Safely parse technologies
+    console.log('Image path:', imagePath); // Debug log
+
+    // Parse technologies safely
     let parsedTechnologies = [];
     try {
       parsedTechnologies = technologies ? JSON.parse(technologies) : [];
-    } catch (error) {
-      console.error('Error parsing technologies:', error);
+    } catch (err) {
+      console.error('Technologies parsing error:', err);
       return res.status(400).json({ msg: 'Invalid technologies format' });
     }
 
-    const project = new Project({
+    console.log('Parsed technologies:', parsedTechnologies); // Debug log
+
+    const projectData = {
       title,
       description,
       image: imagePath,
@@ -102,35 +82,41 @@ router.post("/", auth, uploadProjects.fields([
       sourceCode: sourceCode || '',
       technologies: parsedTechnologies,
       featured: featured === 'true'
-    });
+    };
 
-    await project.save();
-    res.status(201).json(project);
+    console.log('Project data to save:', projectData); // Debug log
+
+    const project = new Project(projectData);
+    const savedProject = await project.save();
+    
+    console.log('Saved project:', savedProject); // Debug log
+    res.status(201).json(savedProject);
+
   } catch (err) {
-    console.error('Project creation error:', err);
+    console.log(req.body);
+    console.error('Project creation error:', {
+      message: err.message,
+      stack: err.stack,
+      name: err.name
+    });
     res.status(500).json({ 
       msg: 'Server error', 
       error: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 });
 
-// PUT /api/projects/:id (protected)
+// PUT (update project)
 router.put('/:id', auth, uploadProjects.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    // Log incoming data for debugging
-    console.log('Update request body:', req.body);
-    console.log('Update request files:', req.files);
-
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ msg: 'Project not found' });
 
     const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
 
-    // Create update object
     const updateData = {
       title: title || project.title,
       description: description || project.description,
@@ -139,21 +125,20 @@ router.put('/:id', auth, uploadProjects.fields([
       featured: featured === 'true'
     };
 
-    // Handle technologies
+    // Update image if new one uploaded
+    if (req.files?.image && req.files.image[0]) {
+      updateData.image = req.files.image[0].path; // cloudinary URL
+    }
+
+    // Update technologies if provided
     if (technologies) {
       try {
         updateData.technologies = JSON.parse(technologies);
-      } catch (error) {
+      } catch (err) {
         return res.status(400).json({ msg: 'Invalid technologies format' });
       }
     }
 
-    // Handle image update
-    if (req.files && req.files["image"] && req.files["image"][0]) {
-      updateData.image = req.files["image"][0].path;
-    }
-
-    // Update the project
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -161,38 +146,22 @@ router.put('/:id', auth, uploadProjects.fields([
     );
 
     res.json(updatedProject);
+
   } catch (err) {
     console.error('Project update error:', err);
-    res.status(500).json({ 
-      msg: 'Server error', 
-      error: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 });
 
-// DELETE /api/projects/:id (protected)
+// DELETE project
 router.delete('/:id', auth, async (req, res) => {
   try {
-    // First find the project to get the image path
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ msg: 'Project not found' });
 
-    // If project has an image, delete it from the uploads folder
-    // if (project.image) {
-    //   const imagePath = path.join(__dirname, '..', project.image);
-    //   try {
-    //     if (fs.existsSync(imagePath)) {
-    //       fs.unlinkSync(imagePath);
-    //       // console.log(`Deleted image file: ${imagePath}`);
-    //     }
-    //   } catch (err) {
-    //     console.error('Error deleting project image:', err);
-    //   }
-    // }
-
-    // Now delete the project from the database
+    // TODO: If you want, call cloudinary.uploader.destroy() here
     await Project.findByIdAndDelete(req.params.id);
+
     res.json({ msg: 'Project and associated image deleted successfully' });
   } catch (err) {
     console.error('Error deleting project:', err);
