@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
+import { getFileUrl } from '../../../helpers/fileHelpers';
 import api from '../../../utils/api';
 
 export default function ProjectsManagement() {
@@ -121,7 +122,7 @@ export default function ProjectsManagement() {
             <div className="relative w-full h-48 overflow-hidden bg-gray-900">
               {project.image ? (
                 <img
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${project.image}`}
+                  src={getFileUrl(project.image)}
                   alt={project.title}
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
