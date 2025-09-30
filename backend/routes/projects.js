@@ -72,29 +72,47 @@ router.post("/", auth, uploadProjects.fields([
   try {
     const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
     
-    // Handle file paths
-    // const imagePath = req.files['image'] ? 
-    //   `/uploads/projects/${req.files['image'][0].filename}` : '';
+    // Log incoming data for debugging
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
 
-    const imagePath = req.files["image"]
-        ? req.files["image"][0].path // Cloudinary returns URL
-        : "";
+    // Validate required fields
+    if (!title || !description) {
+      return res.status(400).json({ msg: 'Title and description are required' });
+    }
+
+    const imagePath = req.files && req.files["image"] && req.files["image"][0]
+      ? req.files["image"][0].path
+      : "";
+
+    // Safely parse technologies
+    let parsedTechnologies = [];
+    try {
+      parsedTechnologies = technologies ? JSON.parse(technologies) : [];
+    } catch (error) {
+      console.error('Error parsing technologies:', error);
+      return res.status(400).json({ msg: 'Invalid technologies format' });
+    }
 
     const project = new Project({
       title,
       description,
       image: imagePath,
-      liveDemo,
-      sourceCode,
-      technologies: technologies ? JSON.parse(technologies) : [],
+      liveDemo: liveDemo || '',
+      sourceCode: sourceCode || '',
+      technologies: parsedTechnologies,
       featured: featured === 'true'
     });
 
     await project.save();
     res.status(201).json(project);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error' });
+    console.error('Project creation error:', err);
+    res.status(500).json({ 
+      msg: 'Server error', 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
@@ -103,52 +121,53 @@ router.put('/:id', auth, uploadProjects.fields([
   { name: 'image', maxCount: 1 }
 ]), async (req, res) => {
   try {
+    // Log incoming data for debugging
+    console.log('Update request body:', req.body);
+    console.log('Update request files:', req.files);
+
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ msg: 'Project not found' });
 
-    // Update fields from form data
     const { title, description, liveDemo, sourceCode, technologies, featured } = req.body;
 
-    // Update project fields
-    project.title = title || project.title;
-    project.description = description || project.description;
-    project.liveDemo = liveDemo || project.liveDemo;
-    project.sourceCode = sourceCode || project.sourceCode;
-    project.featured = featured === 'true';
-    
+    // Create update object
+    const updateData = {
+      title: title || project.title,
+      description: description || project.description,
+      liveDemo: liveDemo || project.liveDemo,
+      sourceCode: sourceCode || project.sourceCode,
+      featured: featured === 'true'
+    };
+
     // Handle technologies
     if (technologies) {
-      project.technologies = JSON.parse(technologies);
+      try {
+        updateData.technologies = JSON.parse(technologies);
+      } catch (error) {
+        return res.status(400).json({ msg: 'Invalid technologies format' });
+      }
     }
 
     // Handle image update
-    // if (req.files && req.files['image']) {
-    //   // Delete old image if exists
-    //   if (project.image) {
-    //     const oldImagePath = path.join(__dirname, '..', project.image);
-    //     try {
-    //       if (fs.existsSync(oldImagePath)) {
-    //         fs.unlinkSync(oldImagePath);
-    //       }
-    //     } catch (err) {
-    //       console.error('Error deleting old image:', err);
-    //     }
-    //   }
-      
-    //   project.image = `/uploads/projects/${req.files['image'][0].filename}`;
-    // }
-
-    // If new image uploaded → replace
-    if (req.files["image"]) {
-      project.image = req.files["image"][0].path;
+    if (req.files && req.files["image"] && req.files["image"][0]) {
+      updateData.image = req.files["image"][0].path;
     }
 
-    await project.save();
-    res.json(project);
+    // Update the project
+    const updatedProject = await Project.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
 
+    res.json(updatedProject);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error' });
+    console.error('Project update error:', err);
+    res.status(500).json({ 
+      msg: 'Server error', 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
