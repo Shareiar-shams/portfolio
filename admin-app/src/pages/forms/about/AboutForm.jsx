@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../../../utils/toast';
+import { getFileUrl } from '../../../helpers/fileHelpers';
 import api from '../../../utils/api';
 
 export default function AboutForm({ about, isEditing = false }) {
@@ -33,14 +34,6 @@ export default function AboutForm({ about, isEditing = false }) {
     };
   }, [previewImage]);
 
-  // Helper function to get the full URL for uploaded files
-  const getFileUrl = (path) => {
-    if (!path) return null;
-    // If it's already a full URL (e.g., from cloudinary), return as is
-    if (path.startsWith('http')) return path;
-    // Otherwise, prepend the backend URL
-    return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${path}`;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
