@@ -69,16 +69,10 @@ router.post("/", auth, uploadAbout.fields([
   try {
     const { name, title, description, contactEmail, socialLinks } = req.body;
 
-    // Handle file paths
-    // const profileImage = req.files['profileImage'] ? 
-    //   `/uploads/about/images/${req.files['profileImage'][0].filename}` : '';
-    // const resumeLink = req.files['resume'] ? 
-    //   `/uploads/about/resumes/${req.files['resume'][0].filename}` : '';
-
-    const profileImage = req.files["profileImage"]
+    const profileImage = req.files && req.files["profileImage"]
       ? req.files["profileImage"][0].path
       : "";
-    const resumeLink = req.files["resume"]
+    const resumeLink = req.files && req.files["resume"]
       ? req.files["resume"][0].path
       : "";
 
@@ -87,7 +81,7 @@ router.post("/", auth, uploadAbout.fields([
       title,
       description,
       contactEmail,
-      socialLinks: JSON.parse(socialLinks),
+      socialLinks: typeof socialLinks === 'string' ? JSON.parse(socialLinks) : socialLinks,
       profileImage,
       resumeLink
     });
@@ -95,11 +89,18 @@ router.post("/", auth, uploadAbout.fields([
     await about.save();
     res.json(about);
   } catch (err) {
-    console.error('Error creating/updating about info:', err);
+    console.error('Error creating about info:', err);
     if (err.name === 'ValidationError') {
       return res.status(400).json({ msg: err.message });
     }
-    res.status(500).json({ msg: "Server error", error: err.message });
+    if (err.name === 'SyntaxError') {
+      return res.status(400).json({ msg: 'Invalid JSON in socialLinks' });
+    }
+    res.status(500).json({ 
+      msg: "Server error", 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
@@ -110,49 +111,50 @@ router.put("/", auth, uploadAbout.fields([
 ]), async (req, res) => {
   try {
     const { name, title, description, contactEmail, socialLinks } = req.body;
+    
+    let profileImage = req.body.profileImage || '';
+    let resumeLink = req.body.resumeLink || '';
+
     const updateData = {
       name,
       title,
       description,
       contactEmail,
-      socialLinks: JSON.parse(socialLinks),
-      profileImage,
-      resumeLink
+      socialLinks: typeof socialLinks === 'string' ? JSON.parse(socialLinks) : socialLinks,
     };
 
-    // Only update file paths if new files were uploaded
-    // if (req.files['profileImage']) {
-    //   updateData.profileImage = `/uploads/about/images/${req.files['profileImage'][0].filename}`;
-    // } else if (req.body.profileImage) {
-    //   updateData.profileImage = req.body.profileImage;
-    // }
-
-    // if (req.files['resume']) {
-    //   updateData.resumeLink = `/uploads/about/resumes/${req.files['resume'][0].filename}`;
-    // } else if (req.body.resumeLink) {
-    //   updateData.resumeLink = req.body.resumeLink;
-    // }
-
-    if(req.files["profileImage"]) {
+    if(req.files && req.files["profileImage"]) {
       updateData.profileImage = req.files["profileImage"][0].path;
-    }else{
-      updateData.profileImage = req.body.profileImage;
+    } else {
+      updateData.profileImage = profileImage;
     }
 
-    if(req.files["resume"]) {
+    if(req.files && req.files["resume"]) {
       updateData.resumeLink = req.files["resume"][0].path;
-    }else{
-      updateData.resumeLink = req.body.resumeLink;
+    } else {
+      updateData.resumeLink = resumeLink;
     }
 
-    const about = await About.findOneAndUpdate({}, updateData, { new: true });
+    const about = await About.findOneAndUpdate({}, updateData, { 
+      new: true,
+      upsert: true // Create if doesn't exist
+    });
+    
     res.json(about);
   } catch (err) {
     console.error('Error updating about info:', err);
     if (err.name === 'ValidationError') {
       return res.status(400).json({ msg: err.message });
     }
-    res.status(500).json({ msg: "Server error", error: err.message });
+    // More specific error handling
+    if (err.name === 'SyntaxError') {
+      return res.status(400).json({ msg: 'Invalid JSON in socialLinks' });
+    }
+    res.status(500).json({ 
+      msg: "Server error", 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
