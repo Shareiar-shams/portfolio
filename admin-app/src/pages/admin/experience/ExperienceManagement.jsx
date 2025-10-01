@@ -77,9 +77,9 @@ export default function ExperienceManagement() {
             key={experience._id}
             className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10"
           >
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-xl font-bold text-white">{experience.position}</h3>
                   {experience.current && (
                     <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full">
@@ -87,11 +87,11 @@ export default function ExperienceManagement() {
                     </span>
                   )}
                 </div>
-                <div className="mt-2 flex items-center text-gray-300">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-gray-300">
                   <h1 className="text-lg font-semibold">{experience.company}</h1>
                   {experience.location && (
                     <>
-                      <span className="mx-2 text-gray-500">•</span>
+                      <span className="hidden sm:inline text-gray-500">•</span>
                       <span className="text-gray-400 flex items-center">
                         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -103,7 +103,7 @@ export default function ExperienceManagement() {
                   )}
                 </div>
                 <p className="text-sm text-gray-400 mt-2 flex items-center">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   {new Date(experience.startDate).toLocaleDateString('en-US', { 
@@ -120,9 +120,9 @@ export default function ExperienceManagement() {
                 </p>
                 <p className="text-gray-300 mt-4 leading-relaxed">{experience.description}</p>
               </div>
-              <div className="flex space-x-2 ml-4">
+              <div className="flex flex-row sm:flex-col gap-2 self-start">
                 <button
-                  className="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors flex items-center"
+                  className="px-3 py-1.5 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors flex items-center whitespace-nowrap"
                   onClick={() => navigate(`/admin/experience/edit/${experience._id}`)}
                 >
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@ export default function ExperienceManagement() {
                   Edit
                 </button>
                 <button
-                  className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors flex items-center"
+                  className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition-colors flex items-center whitespace-nowrap"
                   onClick={() => handleDelete(experience._id)}
                 >
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
