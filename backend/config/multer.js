@@ -20,14 +20,18 @@ function createUploader({ folder, allowedFormats, prefix }) {
   const upload = multer({
     storage: createStorage(folder, allowedFormats, prefix),
     limits: {
-      fileSize: 5 * 1024 * 1024 // 5MB limit
+      fileSize: 10 * 1024 * 1024 // 10MB limit for PDFs
     },
     fileFilter: (req, file, cb) => {
       // Check file type
-      if (!file.mimetype.startsWith('image/')) {
-        return cb(new Error('Only image files are allowed!'), false);
+      if (
+        file.mimetype.startsWith("image/") || 
+        file.mimetype.startsWith("application/")
+      ) {
+        cb(null, true); // Accept file
+      } else {
+        cb(new Error("Only image and application files are allowed!"), false);
       }
-      cb(null, true);
     }
   });
 
