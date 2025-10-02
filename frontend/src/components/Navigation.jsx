@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
-const SECTIONS = ["hero", "about", "skills", "projects", "contact"];
+const SECTIONS = ["hero", "about", "experience", "skills", "projects", "contact"];
 
 const Navigation = ({ activeSection, scrollToSection, isVisible = true }) => {
   const [isOpen, setIsOpen] = useState(false);
