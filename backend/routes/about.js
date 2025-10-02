@@ -125,14 +125,10 @@ router.put("/", auth, uploadAbout.fields([
 
     if(req.files && req.files["profileImage"]) {
       updateData.profileImage = req.files["profileImage"][0].path;
-    } else {
-      updateData.profileImage = profileImage;
     }
 
     if(req.files && req.files["resumeLink"]) {
       updateData.resumeLink = req.files["resumeLink"][0].path;
-    } else {
-      updateData.resumeLink = resumeLink;
     }
 
     const about = await About.findOneAndUpdate({}, updateData, { 
