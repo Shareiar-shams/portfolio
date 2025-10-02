@@ -29,7 +29,7 @@ const router = express.Router();
 //       if (!file.mimetype.startsWith('image/')) {
 //         return cb(new Error('Only image files are allowed!'), false);
 //       }
-//     } else if (file.fieldname === 'resume') {
+//     } else if (file.fieldname === 'resumeLink') {
 //       // Allow only pdfs and documents
 //       const allowedMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 //       if (!allowedMimes.includes(file.mimetype)) {
@@ -64,7 +64,7 @@ router.get("/", async (req, res) => {
 // POST /api/about → Create new (protected)
 router.post("/", auth, uploadAbout.fields([
   { name: 'profileImage', maxCount: 1 },
-  { name: 'resume', maxCount: 1 }
+  { name: 'resumeLink', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { name, title, description, contactEmail, socialLinks } = req.body;
@@ -72,8 +72,8 @@ router.post("/", auth, uploadAbout.fields([
     const profileImage = req.files && req.files["profileImage"]
       ? req.files["profileImage"][0].path
       : "";
-    const resumeLink = req.files && req.files["resume"]
-      ? req.files["resume"][0].path
+    const resumeLink = req.files && req.files["resumeLink"]
+      ? req.files["resumeLink"][0].path
       : "";
 
     const about = new About({
@@ -107,7 +107,7 @@ router.post("/", auth, uploadAbout.fields([
 // PUT /api/about → Update existing (protected)
 router.put("/", auth, uploadAbout.fields([
   { name: 'profileImage', maxCount: 1 },
-  { name: 'resume', maxCount: 1 }
+  { name: 'resumeLink', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { name, title, description, contactEmail, socialLinks } = req.body;
@@ -129,8 +129,8 @@ router.put("/", auth, uploadAbout.fields([
       updateData.profileImage = profileImage;
     }
 
-    if(req.files && req.files["resume"]) {
-      updateData.resumeLink = req.files["resume"][0].path;
+    if(req.files && req.files["resumeLink"]) {
+      updateData.resumeLink = req.files["resumeLink"][0].path;
     } else {
       updateData.resumeLink = resumeLink;
     }
