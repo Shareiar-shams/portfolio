@@ -44,7 +44,7 @@ const Experience = ({ isVisible, experiences }) => (
                       </span>
                       <h3 className="text-xl font-semibold text-white">{exp.position}</h3>
                       <h4 className="text-lg text-gray-300">{exp.company}</h4>
-                      <p className="text-gray-400 mt-2">{exp.description}</p>
+                      <p className="whitespace-pre-line text-gray-400 mt-2">{exp.description}</p>
                       
                       {/* Technologies/Skills used */}
                       {exp.technologies && exp.technologies.length > 0 && (
