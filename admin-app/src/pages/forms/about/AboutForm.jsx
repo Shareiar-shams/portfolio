@@ -65,7 +65,7 @@ export default function AboutForm({ about, isEditing = false }) {
       }
 
       if (resumeInput.files[0]) {
-        formDataToSend.append('resume', resumeInput.files[0]);
+        formDataToSend.append('resumeLink', resumeInput.files[0]);
       } else if (formData.resumeLink) {
         // If no new file, but we have an existing resume URL
         formDataToSend.append('resumeLink', formData.resumeLink);
@@ -87,6 +87,8 @@ export default function AboutForm({ about, isEditing = false }) {
       }
       navigate('/admin/about');
     } catch (err) {
+      console.error('Form submission error:', err);
+      console.error('Error response:', err.response?.data);
       setError(err.response?.data?.msg || err.message || 'Failed to save about information');
       showToast('error', 'Error', err.response?.data?.msg || 'Something went wrong!');
     } finally {
