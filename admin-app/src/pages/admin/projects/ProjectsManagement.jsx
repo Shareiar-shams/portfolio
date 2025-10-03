@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ModelDesciption from '../../../components/ModelDescription';
+import { getFileUrl } from '../../../helpers/fileHelpers';
 import Swal from "sweetalert2";
 import api from '../../../utils/api';
 
@@ -121,7 +123,7 @@ export default function ProjectsManagement() {
             <div className="relative w-full h-48 overflow-hidden bg-gray-900">
               {project.image ? (
                 <img
-                  src={project.image}
+                  src={getFileUrl(project.image)}
                   alt={project.title}
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
@@ -155,7 +157,7 @@ export default function ProjectsManagement() {
             {/* Project Info */}
             <div className="p-5">
               <h3 className="text-xl font-semibold text-white mb-2 truncate">{project.title}</h3>
-              <p className="text-gray-300 text-sm line-clamp-2 mb-4">{project.description}</p>
+              <ModelDesciption description={project.description.split(" ").slice(0, 15).join(" ")} />
               
               {/* Technologies */}
               <div className="space-y-2">

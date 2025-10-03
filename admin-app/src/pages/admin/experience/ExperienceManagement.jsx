@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ModelDesciption from '../../../components/ModelDescription';
 import { useNavigate } from 'react-router-dom';
 import Swal from "sweetalert2";
 import api from '../../../utils/api';
@@ -118,7 +119,7 @@ export default function ExperienceManagement() {
                       : 'Present'
                   }
                 </p>
-                <p className="text-gray-300 mt-4 leading-relaxed">{experience.description}</p>
+                <ModelDesciption description={experience.description} />
               </div>
               <div className="flex flex-row sm:flex-col gap-2 self-start">
                 <button
