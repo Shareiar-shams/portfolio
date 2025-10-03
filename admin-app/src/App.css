@@ -6,6 +6,10 @@
   border-radius: 0.5rem;     /* rounded corners */
 }
 
+.rich-text-editor .ql-container {
+  border: none;
+  min-height: 200px;         /* minimum height */
+}
 .rich-text-editor .ql-toolbar .ql-picker,
 .rich-text-editor .ql-toolbar button {
   color: 1e3a8a; /* button icons color */
