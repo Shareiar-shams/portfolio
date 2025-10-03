@@ -1,1 +1,20 @@
 /* Custom styles can be added here */
+
+/* global CSS or in your editor CSS file */
+.rich-text-editor .ql-toolbar {
+  background-color: white; /* Tailwind blue-800 */
+  border-radius: 0.5rem;     /* rounded corners */
+}
+
+.rich-text-editor .ql-toolbar .ql-picker,
+.rich-text-editor .ql-toolbar button {
+  color: 1e3a8a; /* button icons color */
+}
+
+.rich-text-editor .ql-toolbar .ql-active {
+  background-color: #2563eb; /* Tailwind blue-600 when active */
+}
+
+.rich-text-editor .ql-toolbar button:hover {
+  background-color: #3b82f6; /* Tailwind blue-500 on hover */
+}
