@@ -1,39 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../../../utils/toast';
 import { getFileUrl } from '../../../helpers/fileHelpers';
 import api from '../../../utils/api';
+import ProfileImageInput from '../../../components/about/ProfileImageInput';
+import SocialLinksSection from '../../../components/about/SocialLinksSection';
+import RichTextEditor from '../../../components/about/RichTextEditor';
+
+// Initial state helper
+const initialFormState = (about) => ({
+  name: about?.name || '',
+  title: about?.title || '',
+  description: about?.description || '',
+  profileImage: about?.profileImage || '',
+  contactEmail: about?.contactEmail || '',
+  socialLinks: {
+    github: about?.socialLinks?.github || '',
+    linkedin: about?.socialLinks?.linkedin || '',
+    twitter: about?.socialLinks?.twitter || ''
+  },
+  resumeLink: about?.resumeLink || ''
+});
 
 export default function AboutForm({ about, isEditing = false }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    name: about?.name || '',
-    title: about?.title || '',
-    description: about?.description || '',
-    profileImage: about?.profileImage || '',
-    contactEmail: about?.contactEmail || '',
-    socialLinks: {
-      github: about?.socialLinks?.github || '',
-      linkedin: about?.socialLinks?.linkedin || '',
-      twitter: about?.socialLinks?.twitter || ''
-    },
-    resumeLink: about?.resumeLink || ''
+  const [formData, setFormData] = useState(initialFormState(about));
+  const [selectedFiles, setSelectedFiles] = useState({
+    profileImage: null,
+    resume: null
   });
-
-  const [previewImage, setPreviewImage] = useState(null);
   const [selectedFileName, setSelectedFileName] = useState(null);
-
-  // Cleanup preview URL when component unmounts or when preview changes
-  useEffect(() => {
-    return () => {
-      if (previewImage) {
-        URL.revokeObjectURL(previewImage);
-      }
-    };
-  }, [previewImage]);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,28 +44,24 @@ export default function AboutForm({ about, isEditing = false }) {
       if (!token) throw new Error('No authentication token found');
       
       // Append text fields
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('contactEmail', formData.contactEmail);
-      formDataToSend.append('socialLinks', JSON.stringify(formData.socialLinks));
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'socialLinks') {
+          formDataToSend.append(key, JSON.stringify(value));
+        } else if (key !== 'profileImage' && key !== 'resumeLink') {
+          formDataToSend.append(key, value);
+        }
+      });
 
-      // Get file input elements
-      const profileImageInput = document.getElementById('profileImage');
-      const resumeInput = document.getElementById('resumeLink');
-
-      // Append files if they exist in the input
-      if (profileImageInput.files[0]) {
-        formDataToSend.append('profileImage', profileImageInput.files[0]);
+      // Append files
+      if (selectedFiles.profileImage) {
+        formDataToSend.append('profileImage', selectedFiles.profileImage);
       } else if (formData.profileImage) {
-        // If no new file, but we have an existing image URL
         formDataToSend.append('profileImage', formData.profileImage);
       }
 
-      if (resumeInput.files[0]) {
-        formDataToSend.append('resumeLink', resumeInput.files[0]);
+      if (selectedFiles.resume) {
+        formDataToSend.append('resume', selectedFiles.resume);
       } else if (formData.resumeLink) {
-        // If no new file, but we have an existing resume URL
         formDataToSend.append('resumeLink', formData.resumeLink);
       }
 
@@ -78,16 +72,17 @@ export default function AboutForm({ about, isEditing = false }) {
         },
       };
 
-      if (isEditing) {
-        await api.put('/api/about', formDataToSend, config);
-        showToast('success', 'About Updated', 'About information updated successfully');
-      } else {
-        await api.post('/api/about', formDataToSend, config);
-        showToast('success', 'About Created', 'About information added successfully');
-      }
+      await (isEditing 
+        ? api.put('/api/about', formDataToSend, config)
+        : api.post('/api/about', formDataToSend, config));
+
+      showToast('success', 
+        isEditing ? 'About Updated' : 'About Created', 
+        `About information ${isEditing ? 'updated' : 'added'} successfully`
+      );
+      
       navigate('/admin/about');
     } catch (err) {
-      console.error('Form submission error:', err);
       console.error('Error response:', err.response?.data);
       setError(err.response?.data?.msg || err.message || 'Failed to save about information');
       showToast('error', 'Error', err.response?.data?.msg || 'Something went wrong!');
@@ -144,56 +139,20 @@ export default function AboutForm({ about, isEditing = false }) {
             <label htmlFor="description" className="block text-sm font-medium text-gray-200 mb-1">
               Description
             </label>
-            <textarea
-              id="description"
-              required
+            {/* Rich Text Editor */}
+            <RichTextEditor
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={6}
-              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Write a brief description about yourself"
+              onChange={(value) => setFormData({ ...formData, description: value })}
             />
           </div>
 
-          <div>
-            <label htmlFor="profileImage" className="block text-sm font-medium text-gray-200 mb-1">
-              Profile Image
-            </label>
 
-            {/* Show either preview of new image or existing image */}
-            {(previewImage || formData.profileImage) && (
-              <div className="mb-4">
-                <img
-                  src={previewImage || getFileUrl(formData.profileImage)}
-                  alt="Profile Preview"
-                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-700"
-                />
-                {formData.profileImage && !previewImage && (
-                  <p className="text-sm text-gray-400 mt-2">Current profile image</p>
-                )}
-                {previewImage && (
-                  <p className="text-sm text-gray-400 mt-2">New image selected</p>
-                )}
-              </div>
-            )}
-
-            <input
-              id="profileImage"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  setPreviewImage(URL.createObjectURL(file));
-                  // Clean up previous preview URL
-                  if (previewImage) {
-                    URL.revokeObjectURL(previewImage);
-                  }
-                }
-              }}
-              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
-            />
-          </div>
+          {/* Show either preview of new image or existing image */}
+          {/* Profile Image */}
+          <ProfileImageInput
+            currentImage={formData.profileImage}
+            onChange={(file) => setSelectedFiles({ ...selectedFiles, profileImage: file })}
+          />
 
           <div>
             <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-200 mb-1">
@@ -210,61 +169,11 @@ export default function AboutForm({ about, isEditing = false }) {
             />
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-white">Social Links</h3>
-            
-            <div>
-              <label htmlFor="github" className="block text-sm font-medium text-gray-200 mb-1">
-                GitHub
-              </label>
-              <input
-                id="github"
-                type="url"
-                value={formData.socialLinks.github}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  socialLinks: { ...formData.socialLinks, github: e.target.value }
-                })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="https://github.com/username"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="linkedin" className="block text-sm font-medium text-gray-200 mb-1">
-                LinkedIn
-              </label>
-              <input
-                id="linkedin"
-                type="url"
-                value={formData.socialLinks.linkedin}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  socialLinks: { ...formData.socialLinks, linkedin: e.target.value }
-                })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="https://linkedin.com/in/username"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="twitter" className="block text-sm font-medium text-gray-200 mb-1">
-                Twitter
-              </label>
-              <input
-                id="twitter"
-                type="url"
-                value={formData.socialLinks.twitter}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  socialLinks: { ...formData.socialLinks, twitter: e.target.value }
-                })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="https://twitter.com/username"
-              />
-            </div>
-
-          </div>
+          {/* Social Links */}
+          <SocialLinksSection
+            socialLinks={formData.socialLinks}
+            onChange={(newLinks) => setFormData({ ...formData, socialLinks: newLinks })}
+          />
 
           <div>
             <label htmlFor="resumeLink" className="block text-sm font-medium text-gray-200 mb-1">

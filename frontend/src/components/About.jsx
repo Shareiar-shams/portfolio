@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from "dompurify";
 import { Code, Cpu, Zap, User } from 'lucide-react';
 import { getFileUrl } from '../helpers/fileHelpers';
 
@@ -13,9 +14,9 @@ const About = ({ isVisible, data }) => (
           <div className="space-y-6">
             <div className="prose prose-invert max-w-none">
               {data?.description ? (
-                <p className="whitespace-pre-line text-gray-300 text-lg leading-relaxed">
-                  {data.description}
-                </p>
+                <div className="whitespace-pre-line text-gray-300 text-lg leading-relaxed prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data.description) }}
+                />
               ) : (
                 <p className="text-lg text-gray-300 leading-relaxed">Loading...</p>
               )}
