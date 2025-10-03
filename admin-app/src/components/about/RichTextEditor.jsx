@@ -24,7 +24,7 @@ export default function RichTextEditor({ value, onChange }) {
             quill.clipboard.dangerouslyPasteHTML(value);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [quill, value]);
+    }, [quill]);
 
     // Listen for changes and update parent state
     useEffect(() => {
