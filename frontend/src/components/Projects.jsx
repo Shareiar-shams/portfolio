@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Github } from 'lucide-react';
 import { getFileUrl } from '../helpers/fileHelpers';
-
+import ModelDescription from "./ModelDescription";
 
 const Projects = ({ isVisible, projects }) => {
   const navigate = useNavigate();
@@ -41,10 +41,12 @@ const Projects = ({ isVisible, projects }) => {
                 >
                   {project.title}
                 </h3>
-                <p className="text-gray-400 mb-4">
-                  {project.description.split(" ").slice(0, 20).join(" ")}
-                  {project.description.split(" ").length > 20 && "..."}
-                </p>
+                <ModelDescription description={
+                    project.description.split(" ").slice(0, 20).join(" ") +
+                    (project.description.split(" ").length > 20 ? "..." : "")
+                  } 
+                />
+                
                 <div className="flex flex-wrap gap-2 mb-4">
                   {project.technologies.map((tech) => (
                     <span

@@ -1,5 +1,5 @@
-import React from 'react';
 import dayjs from "dayjs";
+import ModelDescription from "./ModelDescription";
 
 const Experience = ({ isVisible, experiences }) => (
   <section id="experience" className="py-20 px-6 relative">
@@ -44,7 +44,8 @@ const Experience = ({ isVisible, experiences }) => (
                       </span>
                       <h3 className="text-xl font-semibold text-white">{exp.position}</h3>
                       <h4 className="text-lg text-gray-300">{exp.company}</h4>
-                      <p className="whitespace-pre-line text-gray-400 mt-2">{exp.description}</p>
+
+                      <ModelDescription description={exp.description} />
                       
                       {/* Technologies/Skills used */}
                       {exp.technologies && exp.technologies.length > 0 && (

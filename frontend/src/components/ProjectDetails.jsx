@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ExternalLink, Github, ArrowLeft } from 'lucide-react';
 import { getFileUrl } from '../helpers/fileHelpers';
+import ModelDescription from "./ModelDescription";
 
 const ProjectDetails = ({ projects }) => {
   const { id } = useParams();
@@ -54,9 +55,8 @@ const ProjectDetails = ({ projects }) => {
               {project.title}
             </h1>
 
-            <p className="text-gray-300 mb-6 whitespace-pre-line leading-relaxed">
-              {project.description}
-            </p>
+              
+            <ModelDescription description={project.description} />
 
             <div className="mb-8">
               <h3 className="text-xl font-semibold mb-3 text-cyan-400">Technologies Used</h3>
