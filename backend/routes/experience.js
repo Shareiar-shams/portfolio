@@ -7,7 +7,7 @@ const auth = require('../middleware/auth');
 // GET /api/experience
 router.get('/', async (req, res) => {
   try {
-    const experiences = await Experience.find().sort('-createdAt');
+    const experiences = await Experience.find().sort({startDate: -1});
     res.json(experiences);
   } catch (err) {
     console.error(err);
