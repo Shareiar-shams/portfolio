@@ -17,7 +17,7 @@ const uploadProjects = createUploader({
 // GET all projects
 router.get('/', async (req, res) => {
   try {
-    const projects = await Project.find().sort('-createdAt');
+    const projects = await Project.find().sort('createdAt');
     res.json(projects);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
