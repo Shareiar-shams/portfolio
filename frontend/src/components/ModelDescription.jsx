@@ -19,7 +19,7 @@ export default function ModelDescription({ description }) {
   const cleanHtml = DOMPurify.sanitize(fixQuillLists(description));
   return (
     <div
-      className="prose prose-sm text-gray-400 mt-2 max-w-full"
+      className="prose prose-sm text-gray-400 mt-2 max-w-full [&_strong]:text-gray-400 [&_b]:text-gray-400"
       dangerouslySetInnerHTML={{ __html: cleanHtml }}
     />
   );
