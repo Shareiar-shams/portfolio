@@ -23,5 +23,6 @@ app.use('/api/experience', require('./routes/experience'));
 app.use('/api/about', require('./routes/about'));
 app.use('/api/visitors', require('./routes/visitor'));
 app.use('/uploads', express.static('uploads'));
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+module.exports = app;
